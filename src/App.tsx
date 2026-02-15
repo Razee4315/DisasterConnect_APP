@@ -15,8 +15,9 @@ import ResetPasswordPage from "@/pages/reset-password";
 import DashboardPage from "@/pages/dashboard";
 import IncidentsPage from "@/pages/incidents/index";
 import IncidentDetailPage from "@/pages/incidents/[id]";
+import ResourcesPage from "@/pages/resources/index";
+import ResourceDetailPage from "@/pages/resources/[id]";
 import {
-  ResourcesPage,
   MapPage,
   TasksPage,
   MessagingPage,
@@ -62,6 +63,7 @@ function App() {
             <Route path="/incidents" element={<IncidentsPage />} />
             <Route path="/incidents/:id" element={<IncidentDetailPage />} />
             <Route path="/resources" element={<ResourcesPage />} />
+            <Route path="/resources/:id" element={<ResourceDetailPage />} />
             <Route path="/map" element={<MapPage />} />
             <Route path="/tasks" element={<TasksPage />} />
             <Route path="/messaging" element={<MessagingPage />} />

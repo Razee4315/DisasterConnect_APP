@@ -75,16 +75,31 @@ export interface Resource {
     name: string;
     type: ResourceType;
     status: ResourceStatus;
+    capacity: number | null;
     description: string | null;
-    quantity: number;
-    unit: string | null;
     location_name: string | null;
     latitude: number | null;
     longitude: number | null;
-    assigned_incident: string | null;
+    contact_info: string | null;
+    current_incident_id: string | null;
+    maintenance_status: string | null;
+    maintenance_notes: string | null;
+    maintenance_start: string | null;
+    maintenance_end: string | null;
     created_by: string;
     created_at: string;
     updated_at: string;
+}
+
+// ─── Resource Assignments ────────────────────────────────────────
+export interface ResourceAssignment {
+    id: string;
+    resource_id: string;
+    incident_id: string;
+    assigned_by: string;
+    assigned_at: string;
+    released_at: string | null;
+    notes: string | null;
 }
 
 // ─── Tasks ───────────────────────────────────────────────────────

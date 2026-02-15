@@ -1,6 +1,5 @@
 import { PlaceholderPage } from "@/components/placeholder-page";
 import {
-    Package,
     Map,
     ListTodo,
     MessageSquare,
@@ -13,10 +12,6 @@ import {
     Settings,
     ShieldCheck,
 } from "lucide-react";
-
-export function ResourcesPage() {
-    return <PlaceholderPage title="Resources" description="Manage personnel, equipment, and supplies for disaster response." icon={Package} />;
-}
 
 export function MapPage() {
     return <PlaceholderPage title="Map" description="Geospatial view of incidents, resources, and evacuation routes." icon={Map} />;
