@@ -7,6 +7,7 @@ interface MapState {
         incidents: boolean;
         resources: boolean;
         heatmap: boolean;
+        alertRadius: boolean;
         routes: boolean;
     };
 
@@ -23,6 +24,7 @@ export const useMapStore = create<MapState>((set) => ({
         incidents: true,
         resources: true,
         heatmap: false,
+        alertRadius: false,
         routes: false,
     },
 

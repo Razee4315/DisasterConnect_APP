@@ -17,8 +17,8 @@ import IncidentsPage from "@/pages/incidents/index";
 import IncidentDetailPage from "@/pages/incidents/[id]";
 import ResourcesPage from "@/pages/resources/index";
 import ResourceDetailPage from "@/pages/resources/[id]";
+import MapPage from "@/pages/map";
 import {
-  MapPage,
   TasksPage,
   MessagingPage,
   AlertsPage,

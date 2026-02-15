@@ -1,6 +1,5 @@
 import { PlaceholderPage } from "@/components/placeholder-page";
 import {
-    Map,
     ListTodo,
     MessageSquare,
     Bell,
@@ -12,10 +11,6 @@ import {
     Settings,
     ShieldCheck,
 } from "lucide-react";
-
-export function MapPage() {
-    return <PlaceholderPage title="Map" description="Geospatial view of incidents, resources, and evacuation routes." icon={Map} />;
-}
 
 export function TasksPage() {
     return <PlaceholderPage title="Tasks" description="Assign, track, and manage response tasks across teams." icon={ListTodo} />;
