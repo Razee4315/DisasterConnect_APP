@@ -1,0 +1,183 @@
+@import "tailwindcss";
+
+/* ============================================================
+   DisasterConnect — Design Tokens
+   ============================================================ */
+
+@theme {
+  /* --- Brand Colors (HSL) --- */
+  --color-primary: oklch(0.55 0.2 250);
+  --color-primary-foreground: oklch(0.98 0 0);
+
+  --color-destructive: oklch(0.55 0.22 27);
+  --color-destructive-foreground: oklch(0.98 0 0);
+
+  --color-warning: oklch(0.75 0.18 75);
+  --color-warning-foreground: oklch(0.25 0.05 75);
+
+  --color-success: oklch(0.6 0.19 145);
+  --color-success-foreground: oklch(0.98 0 0);
+
+  /* --- Surface / Background --- */
+  --color-background: oklch(0.98 0.005 250);
+  --color-foreground: oklch(0.15 0.01 250);
+
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.15 0.01 250);
+
+  --color-muted: oklch(0.94 0.005 250);
+  --color-muted-foreground: oklch(0.55 0.02 250);
+
+  --color-accent: oklch(0.94 0.01 250);
+  --color-accent-foreground: oklch(0.15 0.01 250);
+
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.15 0.01 250);
+
+  /* --- Border / Input / Ring --- */
+  --color-border: oklch(0.88 0.01 250);
+  --color-input: oklch(0.88 0.01 250);
+  --color-ring: oklch(0.55 0.2 250);
+
+  /* --- Sidebar --- */
+  --color-sidebar: oklch(0.97 0.005 250);
+  --color-sidebar-foreground: oklch(0.35 0.02 250);
+  --color-sidebar-accent: oklch(0.92 0.015 250);
+  --color-sidebar-accent-foreground: oklch(0.15 0.01 250);
+  --color-sidebar-border: oklch(0.9 0.01 250);
+
+  /* --- Severity --- */
+  --color-severity-low: oklch(0.6 0.19 145);
+  --color-severity-medium: oklch(0.75 0.18 75);
+  --color-severity-high: oklch(0.65 0.22 40);
+  --color-severity-critical: oklch(0.55 0.22 27);
+
+  /* --- Radius --- */
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  /* --- Fonts --- */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* ============================================================
+   Dark Mode Overrides
+   ============================================================ */
+
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-primary: oklch(0.7 0.18 250);
+    --color-primary-foreground: oklch(0.15 0.01 250);
+
+    --color-destructive: oklch(0.65 0.2 27);
+    --color-destructive-foreground: oklch(0.98 0 0);
+
+    --color-warning: oklch(0.75 0.18 75);
+    --color-warning-foreground: oklch(0.2 0.05 75);
+
+    --color-success: oklch(0.65 0.17 145);
+    --color-success-foreground: oklch(0.15 0.01 145);
+
+    --color-background: oklch(0.14 0.01 250);
+    --color-foreground: oklch(0.93 0.005 250);
+
+    --color-card: oklch(0.18 0.01 250);
+    --color-card-foreground: oklch(0.93 0.005 250);
+
+    --color-muted: oklch(0.22 0.01 250);
+    --color-muted-foreground: oklch(0.6 0.02 250);
+
+    --color-accent: oklch(0.22 0.015 250);
+    --color-accent-foreground: oklch(0.93 0.005 250);
+
+    --color-popover: oklch(0.18 0.01 250);
+    --color-popover-foreground: oklch(0.93 0.005 250);
+
+    --color-border: oklch(0.28 0.015 250);
+    --color-input: oklch(0.28 0.015 250);
+    --color-ring: oklch(0.7 0.18 250);
+
+    --color-sidebar: oklch(0.16 0.01 250);
+    --color-sidebar-foreground: oklch(0.75 0.015 250);
+    --color-sidebar-accent: oklch(0.22 0.02 250);
+    --color-sidebar-accent-foreground: oklch(0.93 0.005 250);
+    --color-sidebar-border: oklch(0.25 0.015 250);
+
+    --color-severity-low: oklch(0.65 0.17 145);
+    --color-severity-medium: oklch(0.75 0.18 75);
+    --color-severity-high: oklch(0.7 0.2 40);
+    --color-severity-critical: oklch(0.65 0.2 27);
+  }
+}
+
+/* ============================================================
+   Base Styles — Tauri Desktop App
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+  overflow: hidden; /* Desktop app — no body scroll */
+  user-select: none; /* Not a website */
+  -webkit-user-select: none;
+}
+
+/* Allow text selection in content areas */
+[data-selectable],
+input,
+textarea,
+pre,
+code {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* App fills viewport */
+#root {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+}
+
+/* Smooth scrolling in scrollable containers */
+.scrollable {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-border) transparent;
+}
+
+.scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollable::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollable::-webkit-scrollbar-thumb {
+  background-color: var(--color-border);
+  border-radius: 3px;
+}
+
+.scrollable::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-muted-foreground);
+}
