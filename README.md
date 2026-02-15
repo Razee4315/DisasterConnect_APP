@@ -148,14 +148,28 @@ bun run tauri build
 
 ---
 
+## Contributing
+
+Contributions are welcome. Please read the [Contributing Guide](CONTRIBUTING.md) before submitting a pull request.
+
+All contributors are expected to follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+
+---
+
+## Security
+
+To report a vulnerability, please read the [Security Policy](SECURITY.md). Do not open a public issue for security concerns.
+
+---
+
 ## License
 
 This project uses a **Source Available** license. See [LICENSE](LICENSE) for details.
 
 - Free for personal and educational use
 - Free to modify for personal use
-- Commercial use requires permission
-- Redistribution for profit requires a license
+- Commercial use is not permitted without written permission
+- Redistribution for profit is prohibited without a license
 
 ---
 
