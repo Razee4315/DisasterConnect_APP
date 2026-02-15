@@ -2,7 +2,6 @@ import { PlaceholderPage } from "@/components/placeholder-page";
 import {
     ListTodo,
     MessageSquare,
-    Bell,
     Users,
     HandCoins,
     FileBarChart,
@@ -18,10 +17,6 @@ export function TasksPage() {
 
 export function MessagingPage() {
     return <PlaceholderPage title="Messaging" description="Real-time communication channels for teams and incidents." icon={MessageSquare} />;
-}
-
-export function AlertsPage() {
-    return <PlaceholderPage title="Alerts" description="Emergency alerts and notifications for affected areas." icon={Bell} />;
 }
 
 export function TeamsPage() {

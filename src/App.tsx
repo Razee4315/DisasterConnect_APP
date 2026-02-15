@@ -18,10 +18,10 @@ import IncidentDetailPage from "@/pages/incidents/[id]";
 import ResourcesPage from "@/pages/resources/index";
 import ResourceDetailPage from "@/pages/resources/[id]";
 import MapPage from "@/pages/map";
+import AlertsPage from "@/pages/alerts";
 import {
   TasksPage,
   MessagingPage,
-  AlertsPage,
   TeamsPage,
   DonationsPage,
   ReportsPage,
