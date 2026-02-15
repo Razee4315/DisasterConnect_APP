@@ -1,6 +1,7 @@
 use tauri::{
     menu::{MenuBuilder, MenuItemBuilder},
     tray::TrayIconBuilder,
+    Listener,
     Manager,
 };
 
@@ -20,7 +21,29 @@ pub fn run() {
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::default().build())
+        .plugin(tauri_plugin_deep_link::init())
         .setup(|app| {
+            // Handle deep link URLs (e.g. disasterconnect://auth/callback#access_token=...)
+            #[cfg(desktop)]
+            {
+                let handle = app.handle().clone();
+                app.listen("deep-link://new-url", move |event| {
+                    if let Ok(urls) = serde_json::from_str::<Vec<String>>(event.payload()) {
+                        if let Some(url) = urls.first() {
+                            if let Some(window) = handle.get_webview_window("main") {
+                                let _ = window.show();
+                                let _ = window.set_focus();
+                                let js = format!(
+                                    "window.__DEEP_LINK_URL__ = '{}'; window.dispatchEvent(new CustomEvent('deep-link', {{ detail: '{}' }}));",
+                                    url.replace('\'', "\\'"),
+                                    url.replace('\'', "\\'")
+                                );
+                                let _ = window.eval(&js);
+                            }
+                        }
+                    }
+                });
+            }
             // Build tray menu
             let show = MenuItemBuilder::with_id("show", "Show DisasterConnect")
                 .build(app)?;

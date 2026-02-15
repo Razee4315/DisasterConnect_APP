@@ -25,6 +25,11 @@
     "updater": {
       "endpoints": [],
       "pubkey": ""
+    },
+    "deep-link": {
+      "desktop": {
+        "schemes": ["disasterconnect"]
+      }
     }
   },
   "bundle": {

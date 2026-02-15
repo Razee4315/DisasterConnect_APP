@@ -5,6 +5,7 @@ import { ProtectedRoute } from "@/components/protected-route";
 import { AppShell } from "@/components/layout/app-shell";
 import { QueryProvider } from "@/lib/query-provider";
 import { useRealtime } from "@/hooks/use-realtime";
+import { useDeepLink } from "@/hooks/use-deep-link";
 
 // Auth pages
 import LoginPage from "@/pages/login";
@@ -34,6 +35,11 @@ import AdminPage from "@/pages/admin";
 
 import "./index.css";
 
+function DeepLinkHandler() {
+  useDeepLink();
+  return null;
+}
+
 function RealtimeWrapper({ children }: { children: React.ReactNode }) {
   useRealtime();
   return <>{children}</>;
@@ -49,6 +55,7 @@ function App() {
   return (
     <QueryProvider>
       <BrowserRouter>
+        <DeepLinkHandler />
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />

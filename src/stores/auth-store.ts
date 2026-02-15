@@ -79,6 +79,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                     organization: organization || "",
                     role: role || "volunteer",
                 },
+                emailRedirectTo: "disasterconnect://auth/callback",
             },
         });
         set({ isLoading: false });
@@ -106,7 +107,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     resetPassword: async (email) => {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
-            redirectTo: `${window.location.origin}/reset-password`,
+            redirectTo: "disasterconnect://auth/callback",
         });
         return { error: error?.message ?? null };
     },
