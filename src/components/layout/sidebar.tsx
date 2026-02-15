@@ -26,6 +26,7 @@ import {
     FileText,
     Settings,
     ShieldCheck,
+    ScrollText,
     LogOut,
     PanelLeftClose,
     PanelLeft,
@@ -50,6 +51,7 @@ const NAV_ITEMS = [
 
 const BOTTOM_ITEMS = [
     { label: "Settings", icon: Settings, href: "/settings" },
+    { label: "Audit Log", icon: ScrollText, href: "/audit-log", adminOnly: true },
     { label: "Admin", icon: ShieldCheck, href: "/admin", adminOnly: true },
 ] as const;
 

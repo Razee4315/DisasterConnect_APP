@@ -45,6 +45,7 @@ import { useCreateSOS } from "@/hooks/use-sos";
 import { toast } from "sonner";
 import type { SeverityLevel } from "@/types/enums";
 import { CommandPalette } from "@/components/command-palette";
+import { OfflineIndicator } from "@/components/offline-indicator";
 
 export function TopBar() {
     const { profile, signOut } = useAuthStore();
@@ -103,6 +104,9 @@ export function TopBar() {
                 </button>
 
                 <div className="flex-1" />
+
+                {/* Offline indicator */}
+                <OfflineIndicator />
 
                 {/* SOS Button */}
                 <Tooltip>

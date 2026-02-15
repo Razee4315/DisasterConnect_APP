@@ -29,6 +29,7 @@ import {
     Settings,
     ShieldCheck,
     Loader2,
+    ScrollText,
 } from "lucide-react";
 
 // ─── Navigation pages ───────────────────────────────────────────
@@ -51,6 +52,7 @@ const PAGES = [
 ] as const;
 
 const ADMIN_PAGES = [
+    { label: "Audit Log", icon: ScrollText, href: "/audit-log", keywords: "log history activity track changes" },
     { label: "Admin Panel", icon: ShieldCheck, href: "/admin", keywords: "administration users manage system" },
 ] as const;
 

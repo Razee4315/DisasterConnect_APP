@@ -28,10 +28,9 @@ import ReportsPage from "@/pages/reports";
 import EvacuationPage from "@/pages/evacuation";
 import DocumentsPage from "@/pages/documents";
 import AnalyticsPage from "@/pages/analytics";
-import {
-  SettingsPage,
-  AdminPage,
-} from "@/pages/placeholder-pages";
+import { SettingsPage } from "@/pages/placeholder-pages";
+import AuditLogPage from "@/pages/audit-log";
+import AdminPage from "@/pages/admin";
 
 import "./index.css";
 
@@ -85,6 +84,7 @@ function App() {
             <Route path="/evacuation" element={<EvacuationPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/audit-log" element={<AuditLogPage />} />
             <Route path="/admin" element={<AdminPage />} />
           </Route>
 
