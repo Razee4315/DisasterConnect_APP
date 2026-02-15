@@ -115,71 +115,76 @@ html.dark {
 
 /* ============================================================
    Base Styles — Tauri Desktop App
+   ============================================================
+   NOTE: Tailwind v4 already includes Preflight (a modern CSS
+   reset) inside @layer base. Do NOT add an unlayered
+   * { margin:0; padding:0 } — it silently overrides every
+   Tailwind margin/padding utility because unlayered CSS
+   always beats @layer utilities in the cascade.
    ============================================================ */
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    overflow: hidden;
+    /* Desktop app — no body scroll */
+    user-select: none;
+    /* Not a website */
+    -webkit-user-select: none;
+  }
 }
 
-html {
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+@layer base {
+  /* Allow text selection in content areas */
+  [data-selectable],
+  input,
+  textarea,
+  pre,
+  code {
+    user-select: text;
+    -webkit-user-select: text;
+  }
+
+  /* App fills viewport */
+  #root {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    overflow: hidden;
+  }
 }
 
-body {
-  background-color: var(--color-background);
-  color: var(--color-foreground);
-  overflow: hidden;
-  /* Desktop app — no body scroll */
-  user-select: none;
-  /* Not a website */
-  -webkit-user-select: none;
-}
+/* Smooth scrolling in scrollable containers — these use custom
+   classes so they won't conflict with Tailwind utilities. */
+@layer components {
+  .scrollable {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
 
-/* Allow text selection in content areas */
-[data-selectable],
-input,
-textarea,
-pre,
-code {
-  user-select: text;
-  -webkit-user-select: text;
-}
+  .scrollable::-webkit-scrollbar {
+    width: 6px;
+  }
 
-/* App fills viewport */
-#root {
-  width: 100vw;
-  height: 100vh;
-  display: flex;
-  overflow: hidden;
-}
+  .scrollable::-webkit-scrollbar-track {
+    background: transparent;
+  }
 
-/* Smooth scrolling in scrollable containers */
-.scrollable {
-  overflow-y: auto;
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-border) transparent;
-}
+  .scrollable::-webkit-scrollbar-thumb {
+    background-color: var(--color-border);
+    border-radius: 3px;
+  }
 
-.scrollable::-webkit-scrollbar {
-  width: 6px;
-}
-
-.scrollable::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.scrollable::-webkit-scrollbar-thumb {
-  background-color: var(--color-border);
-  border-radius: 3px;
-}
-
-.scrollable::-webkit-scrollbar-thumb:hover {
-  background-color: var(--color-muted-foreground);
+  .scrollable::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-muted-foreground);
+  }
 }
