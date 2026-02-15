@@ -21,6 +21,7 @@ import {
     Users,
     HandCoins,
     FileBarChart,
+    BarChart3,
     Route,
     FileText,
     Settings,
@@ -42,6 +43,7 @@ const NAV_ITEMS = [
     { label: "Teams", icon: Users, href: "/teams" },
     { label: "Donations", icon: HandCoins, href: "/donations" },
     { label: "Reports", icon: FileBarChart, href: "/reports" },
+    { label: "Analytics", icon: BarChart3, href: "/analytics" },
     { label: "Evacuation", icon: Route, href: "/evacuation" },
     { label: "Documents", icon: FileText, href: "/documents" },
 ] as const;

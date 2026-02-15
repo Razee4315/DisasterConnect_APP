@@ -1,0 +1,254 @@
+import { useState, useRef, useCallback } from "react";
+import {
+    useDocuments,
+    useUploadDocument,
+    useDeleteDocument,
+    useDownloadUrl,
+    type DocumentFilters,
+} from "@/hooks/use-documents";
+import { useIncidents } from "@/hooks/use-incidents";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
+import {
+    FileText,
+    Upload,
+    Search,
+    Loader2,
+    Trash2,
+    Download,
+    FileImage,
+    FileArchive,
+    File,
+    FileSpreadsheet,
+} from "lucide-react";
+import { format } from "date-fns";
+import { toast } from "sonner";
+
+function fileIcon(mime: string | null) {
+    if (!mime) return <File className="h-5 w-5 text-muted-foreground" />;
+    if (mime.startsWith("image/")) return <FileImage className="h-5 w-5 text-blue-500" />;
+    if (mime.includes("pdf")) return <FileText className="h-5 w-5 text-red-500" />;
+    if (mime.includes("zip") || mime.includes("rar") || mime.includes("tar")) return <FileArchive className="h-5 w-5 text-amber-500" />;
+    if (mime.includes("sheet") || mime.includes("csv") || mime.includes("excel")) return <FileSpreadsheet className="h-5 w-5 text-green-500" />;
+    if (mime.includes("text") || mime.includes("doc")) return <FileText className="h-5 w-5 text-purple-500" />;
+    return <File className="h-5 w-5 text-muted-foreground" />;
+}
+
+function formatSize(bytes: number | null): string {
+    if (!bytes) return "—";
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1048576).toFixed(1)} MB`;
+}
+
+export default function DocumentsPage() {
+    const [filters, setFilters] = useState<DocumentFilters>({});
+    const [uploading, setUploading] = useState(false);
+    const [dragOver, setDragOver] = useState(false);
+    const fileRef = useRef<HTMLInputElement>(null);
+    const [uploadIncident, setUploadIncident] = useState("");
+
+    const { data: documents = [], isLoading } = useDocuments(filters);
+    const { data: incidents = [] } = useIncidents();
+    const uploadMut = useUploadDocument();
+    const deleteMut = useDeleteDocument();
+    const getDownloadUrl = useDownloadUrl();
+
+    const handleFiles = useCallback(
+        async (files: FileList | File[]) => {
+            setUploading(true);
+            for (const file of Array.from(files)) {
+                try {
+                    await uploadMut.mutateAsync({
+                        file,
+                        incidentId: uploadIncident || undefined,
+                    });
+                } catch {
+                    // error toast handled in hook
+                }
+            }
+            setUploading(false);
+        },
+        [uploadMut, uploadIncident]
+    );
+
+    const handleDrop = useCallback(
+        (e: React.DragEvent) => {
+            e.preventDefault();
+            setDragOver(false);
+            if (e.dataTransfer.files.length) handleFiles(e.dataTransfer.files);
+        },
+        [handleFiles]
+    );
+
+    const handleDownload = useCallback(
+        async (filePath: string, name: string) => {
+            try {
+                const url = await getDownloadUrl(filePath);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = name;
+                a.click();
+            } catch {
+                toast.error("Failed to generate download link");
+            }
+        },
+        [getDownloadUrl]
+    );
+
+    return (
+        <div className="space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-xl font-bold tracking-tight">Documents</h1>
+                    <p className="text-sm text-muted-foreground">Upload, manage, and download files</p>
+                </div>
+                <Button className="gap-1.5" onClick={() => fileRef.current?.click()} disabled={uploading}>
+                    {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+                    Upload
+                </Button>
+                <input
+                    ref={fileRef}
+                    type="file"
+                    multiple
+                    className="hidden"
+                    onChange={(e) => e.target.files && handleFiles(e.target.files)}
+                />
+            </div>
+
+            {/* Upload Zone */}
+            <Card
+                className={`border-2 border-dashed transition-colors cursor-pointer ${dragOver ? "border-primary bg-primary/5" : "border-muted-foreground/20"}`}
+                onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={handleDrop}
+                onClick={() => fileRef.current?.click()}
+            >
+                <CardContent className="flex flex-col items-center justify-center py-8">
+                    <Upload className={`h-8 w-8 mb-2 ${dragOver ? "text-primary" : "text-muted-foreground"}`} />
+                    <p className="text-sm font-medium">{dragOver ? "Drop files here" : "Drag & drop files, or click to browse"}</p>
+                    <p className="text-xs text-muted-foreground mt-1">PDF, images, spreadsheets, and more</p>
+                    <div className="mt-3 w-52">
+                        <Select value={uploadIncident} onValueChange={setUploadIncident}>
+                            <SelectTrigger className="text-xs h-8" onClick={(e) => e.stopPropagation()}>
+                                <SelectValue placeholder="Link to incident (optional)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="">None</SelectItem>
+                                {incidents.map((i) => (
+                                    <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* Filters */}
+            <div className="flex flex-wrap gap-3">
+                <div className="relative flex-1 min-w-[200px] max-w-sm">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                        placeholder="Search documents..."
+                        value={filters.search ?? ""}
+                        onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
+                        className="pl-8"
+                        data-selectable
+                    />
+                </div>
+                <Select value={filters.incidentId ?? ""} onValueChange={(v) => setFilters((f) => ({ ...f, incidentId: v }))}>
+                    <SelectTrigger className="w-48"><SelectValue placeholder="All Incidents" /></SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="">All Incidents</SelectItem>
+                        {incidents.map((i) => <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+
+            {/* Document Table */}
+            {isLoading ? (
+                <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
+            ) : documents.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+                    <FileText className="h-10 w-10 mb-2" />
+                    <p className="text-sm">No documents found</p>
+                </div>
+            ) : (
+                <div className="border rounded-lg overflow-auto">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead>File</TableHead>
+                                <TableHead>Size</TableHead>
+                                <TableHead>Type</TableHead>
+                                <TableHead>Uploaded By</TableHead>
+                                <TableHead>Date</TableHead>
+                                <TableHead className="w-[80px]" />
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {documents.map((d) => (
+                                <TableRow key={d.id}>
+                                    <TableCell>
+                                        <div className="flex items-center gap-2">
+                                            {fileIcon(d.mime_type)}
+                                            <span className="text-sm font-medium truncate max-w-[200px]">{d.name}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-xs text-muted-foreground">{formatSize(d.file_size)}</TableCell>
+                                    <TableCell>
+                                        <Badge variant="outline" className="text-[10px]">{d.mime_type?.split("/").pop() ?? "file"}</Badge>
+                                    </TableCell>
+                                    <TableCell className="text-xs text-muted-foreground">
+                                        {d.profiles ? `${d.profiles.first_name} ${d.profiles.last_name}` : "—"}
+                                    </TableCell>
+                                    <TableCell className="text-xs text-muted-foreground">
+                                        {format(new Date(d.created_at), "MMM d, yyyy")}
+                                    </TableCell>
+                                    <TableCell>
+                                        <div className="flex gap-1">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-7 w-7"
+                                                onClick={() => handleDownload(d.file_path, d.name)}
+                                            >
+                                                <Download className="h-3.5 w-3.5" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-7 w-7 text-destructive"
+                                                onClick={() => deleteMut.mutate({ id: d.id, filePath: d.file_path })}
+                                            >
+                                                <Trash2 className="h-3.5 w-3.5" />
+                                            </Button>
+                                        </div>
+                                    </TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </div>
+            )}
+        </div>
+    );
+}

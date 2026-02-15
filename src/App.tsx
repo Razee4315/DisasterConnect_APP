@@ -23,11 +23,12 @@ import AlertsPage from "@/pages/alerts";
 import TasksPage from "@/pages/tasks";
 import MessagingPage from "@/pages/messaging";
 import TeamsPage from "@/pages/teams";
+import DonationsPage from "@/pages/donations";
+import ReportsPage from "@/pages/reports";
+import EvacuationPage from "@/pages/evacuation";
+import DocumentsPage from "@/pages/documents";
+import AnalyticsPage from "@/pages/analytics";
 import {
-  DonationsPage,
-  ReportsPage,
-  EvacuationPage,
-  DocumentsPage,
   SettingsPage,
   AdminPage,
 } from "@/pages/placeholder-pages";
@@ -80,6 +81,7 @@ function App() {
             <Route path="/teams" element={<TeamsPage />} />
             <Route path="/donations" element={<DonationsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/evacuation" element={<EvacuationPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/settings" element={<SettingsPage />} />

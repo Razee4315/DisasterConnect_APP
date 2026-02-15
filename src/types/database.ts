@@ -201,14 +201,18 @@ export interface SOSBroadcast {
 export interface Donation {
     id: string;
     donor_name: string;
-    donor_email: string | null;
-    donor_phone: string | null;
+    donor_contact: string | null;
     type: DonationType;
-    status: DonationStatus;
-    amount: number | null;
     description: string | null;
+    amount: number | null;
+    quantity: number | null;
+    unit: string | null;
+    status: DonationStatus;
     incident_id: string | null;
-    received_by: string | null;
+    received_at: string | null;
+    distributed_at: string | null;
+    notes: string | null;
+    created_by: string;
     created_at: string;
     updated_at: string;
 }
@@ -231,9 +235,12 @@ export interface EvacuationRoute {
     id: string;
     name: string;
     description: string | null;
-    incident_id: string | null;
     waypoints: Array<{ lat: number; lng: number }>;
-    status: string;
+    distance_km: number | null;
+    estimated_time_minutes: number | null;
+    capacity: number | null;
+    incident_id: string | null;
+    is_active: boolean;
     created_by: string;
     created_at: string;
     updated_at: string;
@@ -243,9 +250,9 @@ export interface EvacuationRoute {
 export interface Document {
     id: string;
     name: string;
-    file_url: string;
-    file_type: string | null;
+    file_path: string;
     file_size: number | null;
+    mime_type: string | null;
     incident_id: string | null;
     uploaded_by: string;
     created_at: string;
@@ -256,9 +263,8 @@ export interface AuditLogEntry {
     id: string;
     user_id: string | null;
     action: string;
-    table_name: string | null;
-    record_id: string | null;
-    old_data: Record<string, unknown> | null;
-    new_data: Record<string, unknown> | null;
+    entity_type: string | null;
+    entity_id: string | null;
+    details: Record<string, unknown> | null;
     created_at: string;
 }
