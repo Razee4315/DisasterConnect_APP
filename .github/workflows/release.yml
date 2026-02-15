@@ -1,0 +1,92 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  # First: check if this version already has a release (cheap, runs on ubuntu)
+  check-version:
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if version tag exists
+        id: check
+        run: |
+          VERSION=$(jq -r '.version' src-tauri/tauri.conf.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          if git tag -l "v$VERSION" | grep -q "v$VERSION"; then
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            echo "::notice::Tag v$VERSION already exists — skipping release"
+          else
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "::notice::New version v$VERSION detected — will build and release"
+          fi
+
+  # Second: build and release only if version is new
+  release:
+    needs: check-version
+    if: needs.check-version.outputs.should_release == 'true'
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install frontend dependencies
+        run: bun install
+
+      - name: Build and Release
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tauriScript: bun run tauri
+          tagName: v__VERSION__
+          releaseName: 'DisasterConnect v__VERSION__'
+          releaseBody: |
+            ## DisasterConnect v__VERSION__
+
+            Real-time disaster management and emergency response coordination.
+
+            ### Installation
+            - **`.msi`** — Standard Windows installer (recommended)
+            - **`.exe`** — NSIS installer
+
+            ### Key Features
+            | Feature | Description |
+            |---------|-------------|
+            | Dashboard | Real-time overview with map, stats, and activity |
+            | Incidents | Report, track, and manage disaster events |
+            | Resources | Coordinate personnel, equipment, and supplies |
+            | Tasks | Kanban board with drag-and-drop |
+            | Messaging | Team communication channels |
+            | Alerts | Emergency notifications with severity levels |
+            | SOS | One-click emergency distress signal |
+          releaseDraft: false
+          prerelease: false
