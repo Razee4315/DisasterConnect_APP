@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useTasks, type TaskWithProfiles } from "@/hooks/use-tasks";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -130,18 +132,18 @@ export default function IncidentDetailPage() {
   const mapIncident: MapIncident[] =
     incident.latitude && incident.longitude
       ? [
-          {
-            id: incident.id,
-            title: incident.title,
-            type: incident.type,
-            severity: incident.severity,
-            status: incident.status,
-            latitude: incident.latitude,
-            longitude: incident.longitude,
-            location_name: incident.location_name,
-            created_at: incident.created_at,
-          },
-        ]
+        {
+          id: incident.id,
+          title: incident.title,
+          type: incident.type,
+          severity: incident.severity,
+          status: incident.status,
+          latitude: incident.latitude,
+          longitude: incident.longitude,
+          location_name: incident.location_name,
+          created_at: incident.created_at,
+        },
+      ]
       : [];
 
   const handleClose = async () => {
@@ -410,7 +412,7 @@ export default function IncidentDetailPage() {
                 </Button>
               </div>
 
-              {/* Updates List */}
+              {/* Enhanced Timeline */}
               {updatesLoading ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
@@ -420,41 +422,89 @@ export default function IncidentDetailPage() {
                   No updates yet. Add the first one above.
                 </p>
               ) : (
-                <div className="space-y-3">
-                  {updates.map((update) => {
-                    const uProfile = update.profiles as {
-                      first_name: string;
-                      last_name: string;
-                    } | null;
-                    return (
-                      <div
-                        key={update.id}
-                        className="flex items-start gap-3 text-sm"
-                      >
-                        <div className="h-7 w-7 rounded-full bg-muted flex items-center justify-center shrink-0 mt-0.5">
-                          <User className="h-3.5 w-3.5 text-muted-foreground" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-sm">
-                              {uProfile
-                                ? `${uProfile.first_name} ${uProfile.last_name}`
-                                : "Unknown"}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {formatDistanceToNow(
-                                new Date(update.created_at),
-                                { addSuffix: true }
-                              )}
-                            </span>
+                <div className="relative">
+                  {/* Vertical connector line */}
+                  <div className="absolute left-[13px] top-3 bottom-3 w-px bg-border" />
+
+                  <div className="space-y-0">
+                    {updates.map((update, idx) => {
+                      const uProfile = update.profiles as {
+                        first_name: string;
+                        last_name: string;
+                      } | null;
+
+                      // Detect update type from message content
+                      const msg = update.message.toLowerCase();
+                      let iconNode = <MessageSquare className="h-3 w-3" />;
+                      let iconBg = "bg-muted text-muted-foreground";
+                      let eventLabel = "";
+
+                      if (msg.includes("status changed") || msg.includes("marked as") || msg.includes("resolved")) {
+                        iconNode = <CheckCircle2 className="h-3 w-3" />;
+                        iconBg = "bg-green-500/15 text-green-600 dark:text-green-400";
+                        eventLabel = "Status Change";
+                      } else if (msg.includes("resource") && (msg.includes("assigned") || msg.includes("released"))) {
+                        iconNode = <Package className="h-3 w-3" />;
+                        iconBg = "bg-blue-500/15 text-blue-600 dark:text-blue-400";
+                        eventLabel = "Resource";
+                      } else if (msg.includes("severity") || msg.includes("escalat")) {
+                        iconNode = <AlertTriangle className="h-3 w-3" />;
+                        iconBg = "bg-orange-500/15 text-orange-600 dark:text-orange-400";
+                        eventLabel = "Severity";
+                      } else if (msg.includes("team") || msg.includes("assigned to")) {
+                        iconNode = <Users className="h-3 w-3" />;
+                        iconBg = "bg-purple-500/15 text-purple-600 dark:text-purple-400";
+                        eventLabel = "Assignment";
+                      } else if (msg.includes("sos") || msg.includes("emergency")) {
+                        iconNode = <Radio className="h-3 w-3" />;
+                        iconBg = "bg-red-500/15 text-red-600 dark:text-red-400";
+                        eventLabel = "Emergency";
+                      }
+
+                      const isLast = idx === updates.length - 1;
+
+                      return (
+                        <div
+                          key={update.id}
+                          className={`flex items-start gap-3 text-sm relative ${isLast ? "" : "pb-4"}`}
+                        >
+                          {/* Icon dot */}
+                          <div
+                            className={`h-7 w-7 rounded-full flex items-center justify-center shrink-0 z-10 ring-2 ring-background ${iconBg}`}
+                          >
+                            {iconNode}
                           </div>
-                          <p className="text-sm mt-0.5" data-selectable>
-                            {update.message}
-                          </p>
+
+                          {/* Content */}
+                          <div className="flex-1 min-w-0 pt-0.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-medium text-sm">
+                                {uProfile
+                                  ? `${uProfile.first_name} ${uProfile.last_name}`
+                                  : "System"}
+                              </span>
+                              {eventLabel && (
+                                <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/70">
+                                  {eventLabel}
+                                </span>
+                              )}
+                              <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap">
+                                {format(new Date(update.created_at), "MMM d, h:mm a")}
+                                {" · "}
+                                {formatDistanceToNow(
+                                  new Date(update.created_at),
+                                  { addSuffix: true }
+                                )}
+                              </span>
+                            </div>
+                            <p className="text-sm mt-0.5 text-muted-foreground" data-selectable>
+                              {update.message}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -579,16 +629,9 @@ export default function IncidentDetailPage() {
           </Card>
         </TabsContent>
 
-        {/* Tasks Tab (placeholder for Step 15) */}
+        {/* Tasks Tab — linked tasks for this incident */}
         <TabsContent value="tasks">
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-sm text-muted-foreground">
-                Task management will be available in a future update.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
+          <IncidentTasks incidentId={incident.id} /></TabsContent>
       </Tabs>
 
       {/* Assignment Dialog */}
@@ -677,6 +720,80 @@ export default function IncidentDetailPage() {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+// ─── Incident Tasks ──────────────────────────────────────────────
+
+const TASK_PRIORITY_STYLE: Record<string, string> = {
+  urgent: "bg-red-500/10 text-red-500 border-red-500/20",
+  high: "bg-orange-500/10 text-orange-500 border-orange-500/20",
+  medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+  low: "bg-green-500/10 text-green-500 border-green-500/20",
+};
+
+const TASK_STATUS_LABEL: Record<string, string> = {
+  pending: "Pending",
+  in_progress: "In Progress",
+  completed: "Completed",
+  cancelled: "Cancelled",
+};
+
+function IncidentTasks({ incidentId }: { incidentId: string }) {
+  const navigate = useNavigate();
+  const { data: tasks = [], isLoading } = useTasks({ incidentId });
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <CardTitle className="text-sm font-medium">
+          Linked Tasks ({tasks.length})
+        </CardTitle>
+        <Button size="sm" className="gap-1" onClick={() => navigate("/tasks")}>
+          <Plus className="h-3.5 w-3.5" />
+          Manage Tasks
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+          </div>
+        ) : tasks.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-8">
+            No tasks linked to this incident yet.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {tasks.map((task: TaskWithProfiles) => (
+              <div
+                key={task.id}
+                className="flex items-center gap-3 p-2.5 rounded-lg border border-border hover:bg-muted/30 transition-colors cursor-pointer"
+                onClick={() => navigate("/tasks")}
+              >
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{task.title}</p>
+                  {task.assignee && (
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      {task.assignee.first_name} {task.assignee.last_name}
+                    </p>
+                  )}
+                </div>
+                <Badge
+                  variant="outline"
+                  className={`text-[10px] px-1.5 py-0 border shrink-0 ${TASK_PRIORITY_STYLE[task.priority] ?? ""}`}
+                >
+                  {task.priority}
+                </Badge>
+                <span className="text-[10px] text-muted-foreground shrink-0">
+                  {TASK_STATUS_LABEL[task.status] ?? task.status}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
