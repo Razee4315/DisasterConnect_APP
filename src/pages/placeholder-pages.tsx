@@ -1,6 +1,5 @@
 import { PlaceholderPage } from "@/components/placeholder-page";
 import {
-    AlertTriangle,
     Package,
     Map,
     ListTodo,
@@ -14,10 +13,6 @@ import {
     Settings,
     ShieldCheck,
 } from "lucide-react";
-
-export function IncidentsPage() {
-    return <PlaceholderPage title="Incidents" description="Track, manage, and coordinate disaster incidents in real-time." icon={AlertTriangle} />;
-}
 
 export function ResourcesPage() {
     return <PlaceholderPage title="Resources" description="Manage personnel, equipment, and supplies for disaster response." icon={Package} />;
