@@ -4,6 +4,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { ProtectedRoute } from "@/components/protected-route";
 import { AppShell } from "@/components/layout/app-shell";
 import { QueryProvider } from "@/lib/query-provider";
+import { useRealtime } from "@/hooks/use-realtime";
 
 // Auth pages
 import LoginPage from "@/pages/login";
@@ -19,10 +20,10 @@ import ResourcesPage from "@/pages/resources/index";
 import ResourceDetailPage from "@/pages/resources/[id]";
 import MapPage from "@/pages/map";
 import AlertsPage from "@/pages/alerts";
+import TasksPage from "@/pages/tasks";
+import MessagingPage from "@/pages/messaging";
+import TeamsPage from "@/pages/teams";
 import {
-  TasksPage,
-  MessagingPage,
-  TeamsPage,
   DonationsPage,
   ReportsPage,
   EvacuationPage,
@@ -32,6 +33,11 @@ import {
 } from "@/pages/placeholder-pages";
 
 import "./index.css";
+
+function RealtimeWrapper({ children }: { children: React.ReactNode }) {
+  useRealtime();
+  return <>{children}</>;
+}
 
 function App() {
   const initialize = useAuthStore((s) => s.initialize);
@@ -54,7 +60,9 @@ function App() {
           <Route
             element={
               <ProtectedRoute>
-                <AppShell />
+                <RealtimeWrapper>
+                  <AppShell />
+                </RealtimeWrapper>
               </ProtectedRoute>
             }
           >

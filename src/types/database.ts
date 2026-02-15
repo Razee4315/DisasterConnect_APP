@@ -123,9 +123,9 @@ export interface Team {
     id: string;
     name: string;
     description: string | null;
-    incident_id: string | null;
-    leader_id: string | null;
-    created_by: string;
+    lead_id: string | null;
+    current_incident_id: string | null;
+    is_active: boolean;
     created_at: string;
     updated_at: string;
 }
@@ -134,6 +134,7 @@ export interface TeamMember {
     id: string;
     team_id: string;
     user_id: string;
+    role: string | null;
     joined_at: string;
 }
 
@@ -143,7 +144,9 @@ export interface Channel {
     name: string;
     type: ChannelType;
     incident_id: string | null;
+    team_id: string | null;
     created_by: string;
+    is_active: boolean;
     created_at: string;
 }
 
@@ -151,6 +154,7 @@ export interface ChannelMember {
     id: string;
     channel_id: string;
     user_id: string;
+    last_read_at: string | null;
     joined_at: string;
 }
 
@@ -160,6 +164,7 @@ export interface Message {
     sender_id: string;
     content: string;
     attachment_url: string | null;
+    attachment_name: string | null;
     created_at: string;
 }
 
@@ -180,13 +185,15 @@ export interface Alert {
 // ─── SOS Broadcasts ─────────────────────────────────────────────
 export interface SOSBroadcast {
     id: string;
-    user_id: string;
+    sender_id: string;
     message: string | null;
+    severity: SeverityLevel;
     latitude: number | null;
     longitude: number | null;
+    location_name: string | null;
+    incident_id: string | null;
     is_active: boolean;
     resolved_at: string | null;
-    resolved_by: string | null;
     created_at: string;
 }
 
@@ -212,8 +219,9 @@ export interface Notification {
     user_id: string;
     type: NotificationType;
     title: string;
-    message: string;
-    link: string | null;
+    body: string | null;
+    entity_type: string | null;
+    entity_id: string | null;
     is_read: boolean;
     created_at: string;
 }
