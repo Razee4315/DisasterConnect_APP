@@ -11,7 +11,8 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { AlertTriangle, Loader2, Shield, CheckCircle2 } from "lucide-react";
+import { AlertTriangle, Loader2, CheckCircle2 } from "lucide-react";
+import { AppLogo } from "@/components/app-logo";
 
 export default function SignupPage() {
     const navigate = useNavigate();
@@ -85,7 +86,7 @@ export default function SignupPage() {
             <Card className="w-full max-w-md">
                 <CardHeader className="text-center space-y-2">
                     <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
-                        <Shield className="h-7 w-7 text-primary" />
+                        <AppLogo className="h-8 w-8" />
                     </div>
                     <CardTitle className="text-2xl font-bold tracking-tight">
                         Create Account

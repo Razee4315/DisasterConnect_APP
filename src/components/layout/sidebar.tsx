@@ -30,8 +30,8 @@ import {
     LogOut,
     PanelLeftClose,
     PanelLeft,
-    Shield,
 } from "lucide-react";
+import { AppLogo } from "@/components/app-logo";
 
 const NAV_ITEMS = [
     { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
@@ -81,7 +81,7 @@ export function Sidebar() {
             <div className="flex h-14 items-center justify-between px-3">
                 {!sidebarCollapsed && (
                     <div className="flex items-center gap-2">
-                        <Shield className="h-6 w-6 text-primary" />
+                        <AppLogo className="h-6 w-6" />
                         <span className="text-sm font-bold tracking-tight">
                             Disaster<span className="text-primary">Connect</span>
                         </span>
