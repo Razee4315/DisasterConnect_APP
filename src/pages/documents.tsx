@@ -147,12 +147,12 @@ export default function DocumentsPage() {
                     <p className="text-sm font-medium">{dragOver ? "Drop files here" : "Drag & drop files, or click to browse"}</p>
                     <p className="text-xs text-muted-foreground mt-1">PDF, images, spreadsheets, and more</p>
                     <div className="mt-3 w-52">
-                        <Select value={uploadIncident} onValueChange={setUploadIncident}>
+                        <Select value={uploadIncident || "__none__"} onValueChange={(v) => setUploadIncident(v === "__none__" ? "" : v)}>
                             <SelectTrigger className="text-xs h-8" onClick={(e) => e.stopPropagation()}>
                                 <SelectValue placeholder="Link to incident (optional)" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">None</SelectItem>
+                                <SelectItem value="__none__">None</SelectItem>
                                 {incidents.map((i) => (
                                     <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>
                                 ))}
@@ -174,10 +174,10 @@ export default function DocumentsPage() {
                         data-selectable
                     />
                 </div>
-                <Select value={filters.incidentId ?? ""} onValueChange={(v) => setFilters((f) => ({ ...f, incidentId: v }))}>
+                <Select value={filters.incidentId || "__all__"} onValueChange={(v) => setFilters((f) => ({ ...f, incidentId: v === "__all__" ? "" : v }))}>
                     <SelectTrigger className="w-48"><SelectValue placeholder="All Incidents" /></SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">All Incidents</SelectItem>
+                        <SelectItem value="__all__">All Incidents</SelectItem>
                         {incidents.map((i) => <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>)}
                     </SelectContent>
                 </Select>

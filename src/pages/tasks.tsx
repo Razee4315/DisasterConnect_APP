@@ -437,12 +437,12 @@ function TaskFormDialog({
                     <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium">Assign to</label>
-                            <Select value={assignedTo} onValueChange={setAssignedTo}>
+                            <Select value={assignedTo || "__none__"} onValueChange={(v) => setAssignedTo(v === "__none__" ? "" : v)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="Unassigned" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">Unassigned</SelectItem>
+                                    <SelectItem value="__none__">Unassigned</SelectItem>
                                     {profiles.map((p) => (
                                         <SelectItem key={p.id} value={p.id}>
                                             {p.first_name} {p.last_name}
@@ -454,12 +454,12 @@ function TaskFormDialog({
 
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium">Linked Incident</label>
-                            <Select value={incidentId} onValueChange={setIncidentId}>
+                            <Select value={incidentId || "__none__"} onValueChange={(v) => setIncidentId(v === "__none__" ? "" : v)}>
                                 <SelectTrigger>
                                     <SelectValue placeholder="None" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">None</SelectItem>
+                                    <SelectItem value="__none__">None</SelectItem>
                                     {incidents.map((inc) => (
                                         <SelectItem key={inc.id} value={inc.id}>
                                             {inc.title}
@@ -597,14 +597,14 @@ export default function TasksPage() {
                     />
                 </div>
                 <Select
-                    value={filters.priority ?? ""}
-                    onValueChange={(v) => setFilters((f) => ({ ...f, priority: v as TaskPriority | "" }))}
+                    value={filters.priority || "__all__"}
+                    onValueChange={(v) => setFilters((f) => ({ ...f, priority: v === "__all__" ? "" : v as TaskPriority }))}
                 >
                     <SelectTrigger className="w-32 h-8">
                         <SelectValue placeholder="Priority" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">All Priorities</SelectItem>
+                        <SelectItem value="__all__">All Priorities</SelectItem>
                         <SelectItem value="urgent">Urgent</SelectItem>
                         <SelectItem value="high">High</SelectItem>
                         <SelectItem value="medium">Medium</SelectItem>
@@ -612,14 +612,14 @@ export default function TasksPage() {
                     </SelectContent>
                 </Select>
                 <Select
-                    value={filters.assignedTo ?? ""}
-                    onValueChange={(v) => setFilters((f) => ({ ...f, assignedTo: v }))}
+                    value={filters.assignedTo || "__all__"}
+                    onValueChange={(v) => setFilters((f) => ({ ...f, assignedTo: v === "__all__" ? "" : v }))}
                 >
                     <SelectTrigger className="w-40 h-8">
                         <SelectValue placeholder="Assignee" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">All Assignees</SelectItem>
+                        <SelectItem value="__all__">All Assignees</SelectItem>
                         {profiles.map((p) => (
                             <SelectItem key={p.id} value={p.id}>
                                 {p.first_name} {p.last_name}

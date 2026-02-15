@@ -341,12 +341,12 @@ function CreateTeamDialog({
                     </div>
                     <div className="space-y-1.5">
                         <label className="text-sm font-medium">Linked Incident</label>
-                        <Select value={incidentId} onValueChange={setIncidentId}>
+                        <Select value={incidentId || "__none__"} onValueChange={(v) => setIncidentId(v === "__none__" ? "" : v)}>
                             <SelectTrigger>
                                 <SelectValue placeholder="None" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">None</SelectItem>
+                                <SelectItem value="__none__">None</SelectItem>
                                 {incidents.map((inc) => (
                                     <SelectItem key={inc.id} value={inc.id}>
                                         {inc.title}

@@ -126,10 +126,10 @@ export default function EvacuationPage() {
                         data-selectable
                     />
                 </div>
-                <Select value={filters.incidentId ?? ""} onValueChange={(v) => setFilters((f) => ({ ...f, incidentId: v }))}>
+                <Select value={filters.incidentId || "__all__"} onValueChange={(v) => setFilters((f) => ({ ...f, incidentId: v === "__all__" ? "" : v }))}>
                     <SelectTrigger className="w-48"><SelectValue placeholder="All Incidents" /></SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">All Incidents</SelectItem>
+                        <SelectItem value="__all__">All Incidents</SelectItem>
                         {incidents.map((i) => <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>)}
                     </SelectContent>
                 </Select>
@@ -374,10 +374,10 @@ function EvacRouteDialog({
                     <div className="grid grid-cols-2 gap-3">
                         <div>
                             <Label className="text-xs">Linked Incident</Label>
-                            <Select value={incidentId} onValueChange={setIncidentId}>
+                            <Select value={incidentId || "__none__"} onValueChange={(v) => setIncidentId(v === "__none__" ? "" : v)}>
                                 <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">None</SelectItem>
+                                    <SelectItem value="__none__">None</SelectItem>
                                     {incidents.map((i) => <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>)}
                                 </SelectContent>
                             </Select>

@@ -199,9 +199,9 @@ export default function IncidentsPage() {
 
             {/* Type filter */}
             <Select
-              value={typeFilter}
+              value={typeFilter || "__all__"}
               onValueChange={(v) => {
-                setTypeFilter(v as IncidentType | "");
+                setTypeFilter(v === "__all__" ? "" : v as IncidentType);
                 setPage(0);
               }}
             >
@@ -209,7 +209,7 @@ export default function IncidentsPage() {
                 <SelectValue placeholder="All Types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="__all__">All Types</SelectItem>
                 {INCIDENT_TYPES.map((t) => (
                   <SelectItem key={t.value} value={t.value}>
                     {t.label}
@@ -220,9 +220,9 @@ export default function IncidentsPage() {
 
             {/* Severity filter */}
             <Select
-              value={severityFilter}
+              value={severityFilter || "__all__"}
               onValueChange={(v) => {
-                setSeverityFilter(v as SeverityLevel | "");
+                setSeverityFilter(v === "__all__" ? "" : v as SeverityLevel);
                 setPage(0);
               }}
             >
@@ -230,7 +230,7 @@ export default function IncidentsPage() {
                 <SelectValue placeholder="All Severity" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Severity</SelectItem>
+                <SelectItem value="__all__">All Severity</SelectItem>
                 {SEVERITY_LEVELS.map((s) => (
                   <SelectItem key={s.value} value={s.value}>
                     {s.label}
@@ -241,9 +241,9 @@ export default function IncidentsPage() {
 
             {/* Status filter */}
             <Select
-              value={statusFilter}
+              value={statusFilter || "__all__"}
               onValueChange={(v) => {
-                setStatusFilter(v as IncidentStatus | "");
+                setStatusFilter(v === "__all__" ? "" : v as IncidentStatus);
                 setPage(0);
               }}
             >
@@ -251,7 +251,7 @@ export default function IncidentsPage() {
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="__all__">All Status</SelectItem>
                 {STATUS_OPTIONS.map((s) => (
                   <SelectItem key={s.value} value={s.value}>
                     {s.label}

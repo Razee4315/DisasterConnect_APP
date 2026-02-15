@@ -130,17 +130,17 @@ export default function DonationsPage() {
                         data-selectable
                     />
                 </div>
-                <Select value={filters.type ?? ""} onValueChange={(v) => setFilters((f) => ({ ...f, type: v as DonationType | "" }))}>
+                <Select value={filters.type || "__all__"} onValueChange={(v) => setFilters((f) => ({ ...f, type: v === "__all__" ? "" : v as DonationType }))}>
                     <SelectTrigger className="w-44"><SelectValue placeholder="All Types" /></SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">All Types</SelectItem>
+                        <SelectItem value="__all__">All Types</SelectItem>
                         {DONATION_TYPES.map((t) => <SelectItem key={t} value={t}>{formatLabel(t)}</SelectItem>)}
                     </SelectContent>
                 </Select>
-                <Select value={filters.status ?? ""} onValueChange={(v) => setFilters((f) => ({ ...f, status: v as DonationStatus | "" }))}>
+                <Select value={filters.status || "__all__"} onValueChange={(v) => setFilters((f) => ({ ...f, status: v === "__all__" ? "" : v as DonationStatus }))}>
                     <SelectTrigger className="w-40"><SelectValue placeholder="All Statuses" /></SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">All Statuses</SelectItem>
+                        <SelectItem value="__all__">All Statuses</SelectItem>
                         {DONATION_STATUSES.map((s) => <SelectItem key={s} value={s}>{formatLabel(s)}</SelectItem>)}
                     </SelectContent>
                 </Select>
@@ -351,10 +351,10 @@ function DonationDialog({
                         )}
                         <div className="col-span-2">
                             <Label className="text-xs">Linked Incident</Label>
-                            <Select value={incidentId} onValueChange={setIncidentId}>
+                            <Select value={incidentId || "__none__"} onValueChange={(v) => setIncidentId(v === "__none__" ? "" : v)}>
                                 <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">None</SelectItem>
+                                    <SelectItem value="__none__">None</SelectItem>
                                     {incidents.map((i) => <SelectItem key={i.id} value={i.id}>{i.title}</SelectItem>)}
                                 </SelectContent>
                             </Select>

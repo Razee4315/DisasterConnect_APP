@@ -241,9 +241,9 @@ export default function AlertsPage() {
 
             {/* Type filter */}
             <Select
-              value={typeFilter}
+              value={typeFilter || "__all__"}
               onValueChange={(v) => {
-                setTypeFilter(v as AlertType | "");
+                setTypeFilter(v === "__all__" ? "" : v as AlertType);
                 setPage(0);
               }}
             >
@@ -251,7 +251,7 @@ export default function AlertsPage() {
                 <SelectValue placeholder="All Types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="__all__">All Types</SelectItem>
                 {ALERT_TYPES.map((t) => (
                   <SelectItem key={t.value} value={t.value}>
                     {t.label}
@@ -262,9 +262,9 @@ export default function AlertsPage() {
 
             {/* Severity filter */}
             <Select
-              value={severityFilter}
+              value={severityFilter || "__all__"}
               onValueChange={(v) => {
-                setSeverityFilter(v as SeverityLevel | "");
+                setSeverityFilter(v === "__all__" ? "" : v as SeverityLevel);
                 setPage(0);
               }}
             >
@@ -272,7 +272,7 @@ export default function AlertsPage() {
                 <SelectValue placeholder="All Severity" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Severity</SelectItem>
+                <SelectItem value="__all__">All Severity</SelectItem>
                 {SEVERITY_LEVELS.map((s) => (
                   <SelectItem key={s.value} value={s.value}>
                     {s.label}

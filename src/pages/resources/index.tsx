@@ -178,9 +178,9 @@ export default function ResourcesPage() {
             </div>
 
             <Select
-              value={typeFilter}
+              value={typeFilter || "__all__"}
               onValueChange={(v) => {
-                setTypeFilter(v as ResourceType | "");
+                setTypeFilter(v === "__all__" ? "" : v as ResourceType);
                 setPage(0);
               }}
             >
@@ -188,7 +188,7 @@ export default function ResourcesPage() {
                 <SelectValue placeholder="All Types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="__all__">All Types</SelectItem>
                 {RESOURCE_TYPES.map((t) => (
                   <SelectItem key={t.value} value={t.value}>
                     {t.label}
@@ -198,9 +198,9 @@ export default function ResourcesPage() {
             </Select>
 
             <Select
-              value={statusFilter}
+              value={statusFilter || "__all__"}
               onValueChange={(v) => {
-                setStatusFilter(v as ResourceStatus | "");
+                setStatusFilter(v === "__all__" ? "" : v as ResourceStatus);
                 setPage(0);
               }}
             >
@@ -208,7 +208,7 @@ export default function ResourcesPage() {
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="__all__">All Status</SelectItem>
                 {STATUS_OPTIONS.map((s) => (
                   <SelectItem key={s.value} value={s.value}>
                     {s.label}
@@ -218,9 +218,9 @@ export default function ResourcesPage() {
             </Select>
 
             <Select
-              value={maintenanceFilter}
+              value={maintenanceFilter || "__all__"}
               onValueChange={(v) => {
-                setMaintenanceFilter(v);
+                setMaintenanceFilter(v === "__all__" ? "" : v);
                 setPage(0);
               }}
             >
@@ -228,7 +228,7 @@ export default function ResourcesPage() {
                 <SelectValue placeholder="Maintenance" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All</SelectItem>
+                <SelectItem value="__all__">All</SelectItem>
                 <SelectItem value="operational">Operational</SelectItem>
                 <SelectItem value="under_maintenance">Under Maintenance</SelectItem>
               </SelectContent>
