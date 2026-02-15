@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { NotificationPanel } from "@/components/notifications/notification-panel";
 import {
@@ -45,6 +44,7 @@ import { useNavigate } from "react-router-dom";
 import { useCreateSOS } from "@/hooks/use-sos";
 import { toast } from "sonner";
 import type { SeverityLevel } from "@/types/enums";
+import { CommandPalette } from "@/components/command-palette";
 
 export function TopBar() {
     const { profile, signOut } = useAuthStore();
@@ -52,6 +52,7 @@ export function TopBar() {
     const [sosOpen, setSOSOpen] = useState(false);
     const [sosMessage, setSOSMessage] = useState("");
     const [sosSeverity, setSOSSeverity] = useState<SeverityLevel>("critical");
+    const [cmdOpen, setCmdOpen] = useState(false);
     const createSOS = useCreateSOS();
 
     const initials = profile
@@ -88,15 +89,18 @@ export function TopBar() {
     return (
         <>
             <header className="flex h-14 shrink-0 items-center gap-3 border-b border-border bg-card px-4">
-                {/* Search */}
-                <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                        placeholder="Search incidents, resources, people..."
-                        className="pl-9 h-9 bg-muted/50 border-none"
-                        data-selectable
-                    />
-                </div>
+                {/* Search trigger — opens Command Palette */}
+                <button
+                    type="button"
+                    onClick={() => setCmdOpen(true)}
+                    className="relative flex h-9 flex-1 max-w-md items-center gap-2 rounded-md bg-muted/50 px-3 text-sm text-muted-foreground transition-colors hover:bg-muted"
+                >
+                    <Search className="h-4 w-4 shrink-0" />
+                    <span className="flex-1 text-left">Search incidents, resources, tasks...</span>
+                    <kbd className="pointer-events-none hidden rounded border bg-background px-1.5 py-0.5 font-mono text-[10px] font-medium sm:inline-block">
+                        Ctrl+K
+                    </kbd>
+                </button>
 
                 <div className="flex-1" />
 
@@ -160,6 +164,9 @@ export function TopBar() {
                     </DropdownMenuContent>
                 </DropdownMenu>
             </header>
+
+            {/* Command Palette */}
+            <CommandPalette open={cmdOpen} onOpenChange={setCmdOpen} />
 
             {/* SOS Dialog */}
             <Dialog open={sosOpen} onOpenChange={setSOSOpen}>

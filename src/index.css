@@ -67,7 +67,7 @@
    Dark Mode Overrides
    ============================================================ */
 
-@media (prefers-color-scheme: dark) {
+html.dark {
   @theme {
     --color-primary: oklch(0.7 0.18 250);
     --color-primary-foreground: oklch(0.15 0.01 250);
@@ -135,8 +135,10 @@ html {
 body {
   background-color: var(--color-background);
   color: var(--color-foreground);
-  overflow: hidden; /* Desktop app — no body scroll */
-  user-select: none; /* Not a website */
+  overflow: hidden;
+  /* Desktop app — no body scroll */
+  user-select: none;
+  /* Not a website */
   -webkit-user-select: none;
 }
 
