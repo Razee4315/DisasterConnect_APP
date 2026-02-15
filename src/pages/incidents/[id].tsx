@@ -20,6 +20,19 @@ import {
 } from "@/components/incidents/severity-badge";
 import { IncidentForm } from "@/components/incidents/incident-form";
 import { DashboardMap } from "@/components/map/map-view";
+import { AssignmentDialog } from "@/components/resources/assignment-dialog";
+import {
+  ResourceStatusBadge,
+  formatResourceType,
+} from "@/components/resources/resource-badges";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   useIncident,
   useUpdateIncident,
@@ -27,6 +40,10 @@ import {
   useIncidentUpdates,
   useAddIncidentUpdate,
 } from "@/hooks/use-incidents";
+import {
+  useIncidentResources,
+  useReleaseResource,
+} from "@/hooks/use-resources";
 import type { MapIncident } from "@/hooks/use-dashboard";
 import {
   ArrowLeft,
@@ -43,6 +60,9 @@ import {
   Send,
   Loader2,
   AlertTriangle,
+  Package,
+  Plus,
+  X,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -60,13 +80,16 @@ export default function IncidentDetailPage() {
 
   const { data: incident, isLoading, error } = useIncident(id);
   const { data: updates, isLoading: updatesLoading } = useIncidentUpdates(id);
+  const { data: assignedResources, isLoading: resourcesLoading } = useIncidentResources(id);
   const updateMutation = useUpdateIncident();
   const deleteMutation = useDeleteIncident();
   const addUpdateMutation = useAddIncidentUpdate();
+  const releaseMutation = useReleaseResource();
 
   const [formOpen, setFormOpen] = useState(false);
   const [closeDialogOpen, setCloseDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [resolutionNotes, setResolutionNotes] = useState("");
   const [newUpdate, setNewUpdate] = useState("");
 
@@ -438,13 +461,120 @@ export default function IncidentDetailPage() {
           </Card>
         </TabsContent>
 
-        {/* Resources Tab (placeholder for Step 10) */}
+        {/* Resources Tab */}
         <TabsContent value="resources">
           <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <p className="text-sm text-muted-foreground">
-                Resource assignments will be available in a future update.
-              </p>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">
+                Assigned Resources
+              </CardTitle>
+              {isActive && (
+                <Button
+                  size="sm"
+                  className="gap-1"
+                  onClick={() => setAssignDialogOpen(true)}
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                  Assign Resource
+                </Button>
+              )}
+            </CardHeader>
+            <CardContent className="p-0">
+              {resourcesLoading ? (
+                <div className="flex justify-center py-8">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                </div>
+              ) : !assignedResources || assignedResources.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 text-center">
+                  <Package className="h-8 w-8 text-muted-foreground/40 mb-2" />
+                  <p className="text-sm text-muted-foreground">
+                    No resources assigned yet.
+                  </p>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Capacity</TableHead>
+                      <TableHead>Assigned By</TableHead>
+                      <TableHead>Assigned At</TableHead>
+                      <TableHead className="w-[80px]">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {assignedResources.map((ar) => {
+                      const res = ar.resources as {
+                        id: string;
+                        name: string;
+                        type: string;
+                        status: string;
+                        capacity: number | null;
+                        location_name: string | null;
+                      } | null;
+                      const assignedBy = ar.profiles as {
+                        first_name: string;
+                        last_name: string;
+                      } | null;
+
+                      if (!res) return null;
+
+                      return (
+                        <TableRow key={ar.id}>
+                          <TableCell
+                            className="font-medium text-primary hover:underline cursor-pointer"
+                            onClick={() => navigate(`/resources/${res.id}`)}
+                          >
+                            {res.name}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {formatResourceType(res.type as any)}
+                          </TableCell>
+                          <TableCell>
+                            <ResourceStatusBadge status={res.status as any} />
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {res.capacity ?? "—"}
+                          </TableCell>
+                          <TableCell className="text-sm">
+                            {assignedBy
+                              ? `${assignedBy.first_name} ${assignedBy.last_name}`
+                              : "—"}
+                          </TableCell>
+                          <TableCell className="text-sm text-muted-foreground whitespace-nowrap">
+                            {format(new Date(ar.assigned_at), "MMM d, h:mm a")}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              title="Release resource"
+                              disabled={releaseMutation.isPending}
+                              onClick={() => {
+                                releaseMutation.mutate(
+                                  {
+                                    assignmentId: ar.id,
+                                    resourceId: ar.resource_id,
+                                    incidentId: ar.incident_id,
+                                  },
+                                  {
+                                    onSuccess: () => toast.success("Resource released"),
+                                    onError: () => toast.error("Failed to release"),
+                                  }
+                                );
+                              }}
+                            >
+                              <X className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -460,6 +590,14 @@ export default function IncidentDetailPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Assignment Dialog */}
+      <AssignmentDialog
+        open={assignDialogOpen}
+        onOpenChange={setAssignDialogOpen}
+        incidentId={incident.id}
+        incidentTitle={incident.title}
+      />
 
       {/* Edit Form Dialog */}
       <IncidentForm

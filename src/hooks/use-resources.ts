@@ -209,3 +209,158 @@ export function useResourceAssignments(resourceId: string | undefined) {
     enabled: !!resourceId,
   });
 }
+
+// ─── Resources Assigned to an Incident ───────────────────────────
+
+export interface IncidentResourceWithDetails {
+  id: string;
+  resource_id: string;
+  incident_id: string;
+  assigned_by: string;
+  assigned_at: string;
+  released_at: string | null;
+  notes: string | null;
+  resources?: {
+    id: string;
+    name: string;
+    type: ResourceType;
+    status: ResourceStatus;
+    capacity: number | null;
+    location_name: string | null;
+  } | null;
+  profiles?: {
+    first_name: string;
+    last_name: string;
+  } | null;
+}
+
+export function useIncidentResources(incidentId: string | undefined) {
+  return useQuery({
+    queryKey: ["incident-resources", incidentId],
+    queryFn: async (): Promise<IncidentResourceWithDetails[]> => {
+      const { data, error } = await supabase
+        .from("resource_assignments")
+        .select(
+          "*, resources!resource_assignments_resource_id_fkey(id, name, type, status, capacity, location_name), profiles!resource_assignments_assigned_by_fkey(first_name, last_name)"
+        )
+        .eq("incident_id", incidentId!)
+        .is("released_at", null)
+        .order("assigned_at", { ascending: false });
+
+      if (error) throw error;
+      return (data ?? []) as IncidentResourceWithDetails[];
+    },
+    enabled: !!incidentId,
+  });
+}
+
+// ─── Available Resources (not currently assigned) ────────────────
+
+export function useAvailableResources(search?: string) {
+  return useQuery({
+    queryKey: ["resources", "available", search],
+    queryFn: async (): Promise<Resource[]> => {
+      let query = supabase
+        .from("resources")
+        .select("*")
+        .eq("status", "available")
+        .order("name");
+
+      if (search) {
+        query = query.or(
+          `name.ilike.%${search}%,description.ilike.%${search}%,location_name.ilike.%${search}%`
+        );
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return (data ?? []) as Resource[];
+    },
+  });
+}
+
+// ─── Assign Resource to Incident ─────────────────────────────────
+
+export function useAssignResource() {
+  const queryClient = useQueryClient();
+  const userId = useAuthStore((s) => s.user?.id);
+
+  return useMutation({
+    mutationFn: async ({
+      resourceId,
+      incidentId,
+      notes,
+    }: {
+      resourceId: string;
+      incidentId: string;
+      notes?: string;
+    }) => {
+      // Create assignment record
+      const { error: assignError } = await supabase
+        .from("resource_assignments")
+        .insert({
+          resource_id: resourceId,
+          incident_id: incidentId,
+          assigned_by: userId!,
+          notes: notes || null,
+        });
+
+      if (assignError) throw assignError;
+
+      // Update resource status and current_incident_id
+      const { error: updateError } = await supabase
+        .from("resources")
+        .update({
+          status: "assigned",
+          current_incident_id: incidentId,
+        })
+        .eq("id", resourceId);
+
+      if (updateError) throw updateError;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["incident-resources", variables.incidentId] });
+      queryClient.invalidateQueries({ queryKey: ["resources"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+  });
+}
+
+// ─── Release Resource from Incident ─────────────────────────────
+
+export function useReleaseResource() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (input: {
+      assignmentId: string;
+      resourceId: string;
+      incidentId: string;
+    }) => {
+      // Mark assignment as released
+      const { error: releaseError } = await supabase
+        .from("resource_assignments")
+        .update({ released_at: new Date().toISOString() })
+        .eq("id", input.assignmentId);
+
+      if (releaseError) throw releaseError;
+
+      // Update resource status back to available
+      const { error: updateError } = await supabase
+        .from("resources")
+        .update({
+          status: "available",
+          current_incident_id: null,
+        })
+        .eq("id", input.resourceId);
+
+      if (updateError) throw updateError;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["incident-resources", variables.incidentId] });
+      queryClient.invalidateQueries({ queryKey: ["resource-assignments", variables.resourceId] });
+      queryClient.invalidateQueries({ queryKey: ["resources"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+    },
+  });
+}
