@@ -83,8 +83,8 @@ export function useCreateTeam() {
                 .insert({
                     name: input.name,
                     description: input.description ?? null,
-                    incident_id: input.incident_id ?? null,
-                    created_by: userId!,
+                    current_incident_id: input.incident_id ?? null,
+                    lead_id: userId!,
                 })
                 .select()
                 .single();

@@ -196,4 +196,9 @@ html.dark {
     z-index: 0;
     isolation: isolate;
   }
+
+  .map-page-container {
+    isolation: isolate;
+    position: relative;
+  }
 }

@@ -4,10 +4,11 @@ import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
     children: React.ReactNode;
+    allowedRoles?: string[];
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
-    const { session, isLoading, isInitialized } = useAuthStore();
+export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
+    const { session, profile, isLoading, isInitialized } = useAuthStore();
 
     if (!isInitialized || isLoading) {
         return (
@@ -19,6 +20,10 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
 
     if (!session) {
         return <Navigate to="/login" replace />;
+    }
+
+    if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
+        return <Navigate to="/dashboard" replace />;
     }
 
     return <>{children}</>;

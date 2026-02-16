@@ -22,6 +22,8 @@ import {
     TrendingUp,
     Clock,
 } from "lucide-react";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeFile } from "@tauri-apps/plugin-fs";
 import { format } from "date-fns";
 import { toast } from "sonner";
 
@@ -204,8 +206,21 @@ export default function ReportsPage() {
             }
 
             const fileName = `DisasterConnect_${reportType}_${format(new Date(), "yyyy-MM-dd_HHmm")}.pdf`;
-            doc.save(fileName);
-            toast.success(`Report saved as ${fileName}`);
+
+            // Use Tauri save dialog so the user can choose where to save
+            const filePath = await save({
+                defaultPath: fileName,
+                filters: [{ name: "PDF", extensions: ["pdf"] }],
+            });
+
+            if (!filePath) {
+                // User cancelled the dialog
+                return;
+            }
+
+            const pdfBytes = doc.output("arraybuffer");
+            await writeFile(filePath, new Uint8Array(pdfBytes));
+            toast.success(`Report saved to ${filePath}`);
         } catch (err) {
             console.error(err);
             toast.error("Failed to generate PDF");

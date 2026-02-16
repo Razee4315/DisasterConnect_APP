@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { RoleGate } from "@/components/role-gate";
 
 // ─── Team Card ───────────────────────────────────────────────────
 
@@ -402,10 +403,12 @@ export default function TeamsPage() {
                         {teams.length} teams
                     </p>
                 </div>
-                <Button size="sm" onClick={() => setCreateOpen(true)}>
-                    <Plus className="h-4 w-4 mr-1.5" />
-                    Create Team
-                </Button>
+                <RoleGate allowedRoles={["administrator", "coordinator"]}>
+                    <Button size="sm" onClick={() => setCreateOpen(true)}>
+                        <Plus className="h-4 w-4 mr-1.5" />
+                        Create Team
+                    </Button>
+                </RoleGate>
             </div>
 
             {/* Search */}
@@ -434,10 +437,12 @@ export default function TeamsPage() {
                             <Users className="h-12 w-12 mb-3 opacity-40" />
                             <p className="text-lg font-medium">No teams found</p>
                             <p className="text-sm mt-1">Create a team to coordinate response</p>
+                            <RoleGate allowedRoles={["administrator", "coordinator"]}>
                             <Button className="mt-4" onClick={() => setCreateOpen(true)}>
                                 <Plus className="h-4 w-4 mr-1.5" />
                                 Create Team
                             </Button>
+                        </RoleGate>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -78,7 +78,7 @@ export function Sidebar() {
             )}
         >
             {/* Logo + collapse toggle */}
-            <div className="flex h-14 items-center justify-between px-3">
+            <div className={cn("flex h-14 items-center px-3", sidebarCollapsed ? "justify-center" : "justify-between")}>
                 {!sidebarCollapsed && (
                     <div className="flex items-center gap-2">
                         <AppLogo className="h-6 w-6" />

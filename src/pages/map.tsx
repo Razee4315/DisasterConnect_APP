@@ -325,7 +325,7 @@ export default function MapPage() {
   const isLoading = incLoading || resLoading;
 
   return (
-    <div className="relative h-full -m-4 sm:-m-6">
+    <div className="map-page-container relative h-full -m-4 sm:-m-6">
       {/* Full-screen map */}
       {isLoading ? (
         <div className="flex items-center justify-center h-full bg-muted/30">
@@ -380,7 +380,7 @@ export default function MapPage() {
       )}
 
       {/* Layer Control Panel (top-right) */}
-      <Card className="absolute top-3 right-3 z-[1000] p-3 space-y-1.5 shadow-lg">
+      <Card className="absolute top-3 right-3 z-10 p-3 space-y-1.5 shadow-lg">
         <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground mb-1">
           <Layers className="h-3.5 w-3.5" />
           Layers
@@ -413,7 +413,7 @@ export default function MapPage() {
       </Card>
 
       {/* Legend (bottom-left) */}
-      <Card className="absolute bottom-3 left-3 z-[1000] px-3 py-2 shadow-lg">
+      <Card className="absolute bottom-3 left-3 z-10 px-3 py-2 shadow-lg">
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <LegendItem color="#dc2626" label="Critical" />
           <LegendItem color="#f97316" label="High" />
@@ -425,7 +425,7 @@ export default function MapPage() {
       </Card>
 
       {/* Stats overlay (bottom-right) */}
-      <Card className="absolute bottom-3 right-3 z-[1000] px-3 py-2 shadow-lg">
+      <Card className="absolute bottom-3 right-3 z-10 px-3 py-2 shadow-lg">
         <div className="flex items-center gap-3 text-xs text-muted-foreground">
           <span>{geoIncidents.length} incidents</span>
           <Separator orientation="vertical" className="h-3" />

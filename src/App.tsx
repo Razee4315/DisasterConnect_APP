@@ -4,6 +4,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { ProtectedRoute } from "@/components/protected-route";
 import { AppShell } from "@/components/layout/app-shell";
 import { QueryProvider } from "@/lib/query-provider";
+import { AuthLayout } from "@/components/layout/auth-layout";
 import { useRealtime } from "@/hooks/use-realtime";
 import { useDeepLink } from "@/hooks/use-deep-link";
 
@@ -57,11 +58,13 @@ function App() {
       <BrowserRouter>
         <DeepLinkHandler />
         <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          {/* Public routes (with title bar) */}
+          <Route element={<AuthLayout />}>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
+          </Route>
 
           {/* Protected routes (wrapped in AppShell) */}
           <Route
@@ -91,8 +94,16 @@ function App() {
             <Route path="/evacuation" element={<EvacuationPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
-            <Route path="/audit-log" element={<AuditLogPage />} />
-            <Route path="/admin" element={<AdminPage />} />
+            <Route path="/audit-log" element={
+              <ProtectedRoute allowedRoles={["administrator"]}>
+                <AuditLogPage />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute allowedRoles={["administrator"]}>
+                <AdminPage />
+              </ProtectedRoute>
+            } />
           </Route>
 
           {/* Catch-all */}

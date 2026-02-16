@@ -313,8 +313,9 @@ function CreateChannelDialog({
             toast.success("Channel created");
             onOpenChange(false);
             setName("");
-        } catch {
-            toast.error("Failed to create channel");
+        } catch (err: any) {
+            console.error("[channels] Failed to create channel:", err);
+            toast.error(err?.message || "Failed to create channel");
         }
     };
 

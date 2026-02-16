@@ -9,8 +9,9 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 
 import { Switch } from "@/components/ui/switch";
-import { User, Palette, Bell, Loader2, Save, Sun, Moon, Monitor } from "lucide-react";
+import { User, Palette, Bell, Lock, Info, Loader2, Save, Sun, Moon, Monitor } from "lucide-react";
 import { toast } from "sonner";
+import { getVersion } from "@tauri-apps/api/app";
 
 const NOTIFICATION_ITEMS = [
     { id: "incidents", label: "Incident updates", desc: "New incidents and status changes" },
@@ -22,7 +23,7 @@ const NOTIFICATION_ITEMS = [
 type NotifPrefs = Record<string, boolean>;
 
 export default function SettingsPage() {
-    const { profile, session, fetchProfile } = useAuthStore();
+    const { profile, session, fetchProfile, updatePassword } = useAuthStore();
     const { theme, setTheme } = useUIStore();
 
     // Profile form
@@ -40,6 +41,19 @@ export default function SettingsPage() {
         sos: true,
     });
     const [savingNotifs, setSavingNotifs] = useState(false);
+
+    // Password change
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [changingPassword, setChangingPassword] = useState(false);
+
+    // About
+    const [appVersion, setAppVersion] = useState("");
+    const platformInfo = navigator.platform || "unknown";
+
+    useEffect(() => {
+        getVersion().then(setAppVersion).catch(() => setAppVersion("unknown"));
+    }, []);
 
     useEffect(() => {
         if (profile) {
@@ -96,6 +110,31 @@ export default function SettingsPage() {
             setNotifPrefs(notifPrefs); // revert
         }
         setSavingNotifs(false);
+    };
+
+    const handleChangePassword = async () => {
+        if (!newPassword || !confirmPassword) {
+            toast.error("Please fill in both password fields");
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            toast.error("Passwords do not match");
+            return;
+        }
+        if (newPassword.length < 6) {
+            toast.error("Password must be at least 6 characters");
+            return;
+        }
+        setChangingPassword(true);
+        const { error } = await updatePassword(newPassword);
+        if (error) {
+            toast.error(error);
+        } else {
+            toast.success("Password updated successfully");
+            setNewPassword("");
+            setConfirmPassword("");
+        }
+        setChangingPassword(false);
     };
 
     const themeOptions = [
@@ -216,6 +255,75 @@ export default function SettingsPage() {
                             />
                         </div>
                     ))}
+                </CardContent>
+            </Card>
+
+            {/* ── Change Password ────────────────────────────── */}
+            <Card>
+                <CardHeader className="pb-3">
+                    <div className="flex items-center gap-2">
+                        <Lock className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-sm">Change Password</CardTitle>
+                    </div>
+                    <CardDescription className="text-xs">Update your account password</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                    <div>
+                        <Label className="text-xs">New Password</Label>
+                        <Input
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            placeholder="Min. 6 characters"
+                            data-selectable
+                        />
+                    </div>
+                    <div>
+                        <Label className="text-xs">Confirm New Password</Label>
+                        <Input
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            placeholder="Repeat new password"
+                            data-selectable
+                        />
+                    </div>
+                    <Separator />
+                    <div className="flex justify-end">
+                        <Button onClick={handleChangePassword} disabled={changingPassword} className="gap-1.5">
+                            {changingPassword ? <Loader2 className="h-4 w-4 animate-spin" /> : <Lock className="h-4 w-4" />}
+                            Update Password
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* ── About ──────────────────────────────────────── */}
+            <Card>
+                <CardHeader className="pb-3">
+                    <div className="flex items-center gap-2">
+                        <Info className="h-4 w-4 text-primary" />
+                        <CardTitle className="text-sm">About</CardTitle>
+                    </div>
+                    <CardDescription className="text-xs">Application information</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Version</span>
+                        <span className="text-sm font-medium">{appVersion || "..."}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Platform</span>
+                        <span className="text-sm font-medium capitalize">{platformInfo || "..."}</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted-foreground">Built by</span>
+                        <span className="text-sm font-medium">Saqlain Abbas</span>
+                    </div>
+                    <Separator />
+                    <p className="text-xs text-muted-foreground">
+                        DisasterConnect is a real-time disaster management and emergency response coordination platform.
+                    </p>
                 </CardContent>
             </Card>
         </div>
