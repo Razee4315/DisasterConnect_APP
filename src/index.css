@@ -79,7 +79,7 @@ html.dark {
     --color-warning-foreground: oklch(0.2 0.05 75);
 
     --color-success: oklch(0.65 0.17 145);
-    --color-success-foreground: oklch(0.15 0.01 145);
+    --color-success-foreground: oklch(0.98 0 0);
 
     --color-background: oklch(0.14 0.01 250);
     --color-foreground: oklch(0.93 0.005 250);
@@ -186,5 +186,14 @@ html.dark {
 
   .scrollable::-webkit-scrollbar-thumb:hover {
     background-color: var(--color-muted-foreground);
+  }
+}
+
+/* Leaflet map z-index containment — prevent map tiles from
+   overlapping Radix dialogs/popovers which use portal z-index. */
+@layer components {
+  .leaflet-container {
+    z-index: 0;
+    isolation: isolate;
   }
 }

@@ -146,7 +146,7 @@ export default function EvacuationPage() {
             {showMap && (
                 <Card className="overflow-hidden">
                     <CardContent className="p-0 h-[350px]">
-                        <MapContainer center={center} zoom={12} className="h-full w-full" style={{ zIndex: 1 }}>
+                        <MapContainer center={center} zoom={12} className="h-full w-full" style={{ zIndex: 0 }}>
                             <TileLayer
                                 attribution='&copy; <a href="https://www.openstreetmap.org">OSM</a>'
                                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -396,7 +396,7 @@ function EvacRouteDialog({
                                 center={waypoints.length > 0 ? [waypoints[0].lat, waypoints[0].lng] : [33.6844, 73.0479]}
                                 zoom={12}
                                 className="h-full w-full"
-                                style={{ zIndex: 1 }}
+                                style={{ zIndex: 0 }}
                             >
                                 <TileLayer
                                     attribution='&copy; OSM'

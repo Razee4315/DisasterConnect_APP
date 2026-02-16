@@ -12,6 +12,15 @@ import { Switch } from "@/components/ui/switch";
 import { User, Palette, Bell, Loader2, Save, Sun, Moon, Monitor } from "lucide-react";
 import { toast } from "sonner";
 
+const NOTIFICATION_ITEMS = [
+    { id: "incidents", label: "Incident updates", desc: "New incidents and status changes" },
+    { id: "tasks", label: "Task assignments", desc: "When you're assigned to a task" },
+    { id: "messages", label: "Messages", desc: "Direct messages and channel activity" },
+    { id: "sos", label: "SOS broadcasts", desc: "Emergency alerts from team" },
+] as const;
+
+type NotifPrefs = Record<string, boolean>;
+
 export default function SettingsPage() {
     const { profile, session, fetchProfile } = useAuthStore();
     const { theme, setTheme } = useUIStore();
@@ -23,12 +32,29 @@ export default function SettingsPage() {
     const [organization, setOrganization] = useState("");
     const [saving, setSaving] = useState(false);
 
+    // Notification preferences
+    const [notifPrefs, setNotifPrefs] = useState<NotifPrefs>({
+        incidents: true,
+        tasks: true,
+        messages: true,
+        sos: true,
+    });
+    const [savingNotifs, setSavingNotifs] = useState(false);
+
     useEffect(() => {
         if (profile) {
             setFirstName(profile.first_name ?? "");
             setLastName(profile.last_name ?? "");
             setPhone(profile.phone ?? "");
             setOrganization(profile.organization ?? "");
+
+            // Load saved notification preferences
+            if (profile.notification_preferences) {
+                setNotifPrefs((prev) => ({
+                    ...prev,
+                    ...(profile.notification_preferences as NotifPrefs),
+                }));
+            }
         }
     }, [profile]);
 
@@ -52,6 +78,24 @@ export default function SettingsPage() {
             fetchProfile();
         }
         setSaving(false);
+    };
+
+    const handleNotifToggle = async (id: string, checked: boolean) => {
+        const updated = { ...notifPrefs, [id]: checked };
+        setNotifPrefs(updated);
+
+        if (!session) return;
+        setSavingNotifs(true);
+        const { error } = await supabase
+            .from("profiles")
+            .update({ notification_preferences: updated })
+            .eq("id", session.user.id);
+
+        if (error) {
+            toast.error("Failed to save notification preference");
+            setNotifPrefs(notifPrefs); // revert
+        }
+        setSavingNotifs(false);
     };
 
     const themeOptions = [
@@ -159,18 +203,17 @@ export default function SettingsPage() {
                     <CardDescription className="text-xs">Control what alerts you receive</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    {[
-                        { id: "incidents", label: "Incident updates", desc: "New incidents and status changes" },
-                        { id: "tasks", label: "Task assignments", desc: "When you're assigned to a task" },
-                        { id: "messages", label: "Messages", desc: "Direct messages and channel activity" },
-                        { id: "sos", label: "SOS broadcasts", desc: "Emergency alerts from team" },
-                    ].map((item) => (
+                    {NOTIFICATION_ITEMS.map((item) => (
                         <div key={item.id} className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium">{item.label}</p>
                                 <p className="text-xs text-muted-foreground">{item.desc}</p>
                             </div>
-                            <Switch defaultChecked />
+                            <Switch
+                                checked={notifPrefs[item.id] ?? true}
+                                onCheckedChange={(checked) => handleNotifToggle(item.id, checked)}
+                                disabled={savingNotifs}
+                            />
                         </div>
                     ))}
                 </CardContent>

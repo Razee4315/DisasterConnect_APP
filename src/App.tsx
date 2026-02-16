@@ -29,7 +29,7 @@ import ReportsPage from "@/pages/reports";
 import EvacuationPage from "@/pages/evacuation";
 import DocumentsPage from "@/pages/documents";
 import AnalyticsPage from "@/pages/analytics";
-import { SettingsPage } from "@/pages/placeholder-pages";
+import SettingsPage from "@/pages/settings";
 import AuditLogPage from "@/pages/audit-log";
 import AdminPage from "@/pages/admin";
 
