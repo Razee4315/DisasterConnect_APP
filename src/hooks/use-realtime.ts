@@ -100,6 +100,11 @@ export function useRealtime() {
             .subscribe();
 
         return () => {
+            notificationsChannel.unsubscribe();
+            incidentsChannel.unsubscribe();
+            sosChannel.unsubscribe();
+            resourcesChannel.unsubscribe();
+            tasksChannel.unsubscribe();
             supabase.removeChannel(notificationsChannel);
             supabase.removeChannel(incidentsChannel);
             supabase.removeChannel(sosChannel);

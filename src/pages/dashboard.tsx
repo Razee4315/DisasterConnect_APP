@@ -86,7 +86,7 @@ export default function DashboardPage() {
             </div>
           </CardHeader>
           <CardContent className="p-0">
-            {incidentsLoading && resourcesLoading ? (
+            {incidentsLoading || resourcesLoading ? (
               <div className="flex items-center justify-center h-[400px] bg-muted/30">
                 <div className="flex flex-col items-center gap-2">
                   <Layers className="h-8 w-8 text-muted-foreground/50 animate-pulse" />

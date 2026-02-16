@@ -34,6 +34,18 @@ import {
   Loader2,
 } from "lucide-react";
 
+// ─── Helpers ────────────────────────────────────────────────────
+
+/** Escape HTML entities to prevent injection in Leaflet popups. */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 // ─── Constants ───────────────────────────────────────────────────
 
 const SEVERITY_COLORS: Record<SeverityLevel, string> = {
@@ -173,11 +185,11 @@ function ClusteredIncidentMarkers({
 
       marker.bindPopup(
         `<div style="min-width:180px">
-          <p style="font-weight:600;margin:0 0 4px">${inc.title}</p>
-          <p style="font-size:12px;margin:0"><span style="color:#888">Severity:</span> <span style="color:${color};font-weight:500">${inc.severity}</span></p>
-          <p style="font-size:12px;margin:0"><span style="color:#888">Status:</span> ${inc.status.replace("_", " ")}</p>
-          ${inc.location_name ? `<p style="font-size:11px;margin:4px 0 0;color:#888">${inc.location_name}</p>` : ""}
-          <p style="margin:6px 0 0"><a href="#" class="incident-link" data-id="${inc.id}" style="font-size:12px;color:#0f766e">View Details &rarr;</a></p>
+          <p style="font-weight:600;margin:0 0 4px">${escapeHtml(inc.title)}</p>
+          <p style="font-size:12px;margin:0"><span style="color:#888">Severity:</span> <span style="color:${color};font-weight:500">${escapeHtml(inc.severity)}</span></p>
+          <p style="font-size:12px;margin:0"><span style="color:#888">Status:</span> ${escapeHtml(inc.status.replace("_", " "))}</p>
+          ${inc.location_name ? `<p style="font-size:11px;margin:4px 0 0;color:#888">${escapeHtml(inc.location_name)}</p>` : ""}
+          <p style="margin:6px 0 0"><a href="#" class="incident-link" data-id="${escapeHtml(inc.id)}" style="font-size:12px;color:#0f766e">View Details &rarr;</a></p>
         </div>`
       );
 
@@ -310,7 +322,7 @@ export default function MapPage() {
     [incidents]
   );
 
-  const isLoading = incLoading && resLoading;
+  const isLoading = incLoading || resLoading;
 
   return (
     <div className="relative h-full -m-4 sm:-m-6">

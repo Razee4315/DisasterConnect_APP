@@ -108,7 +108,9 @@ export function CommandPalette({
         const search = async () => {
             setLoading(true);
             try {
-                const term = `%${query}%`;
+                // Escape LIKE wildcards so user input is treated literally
+                const escaped = query.replace(/[%_\\]/g, "\\$&");
+                const term = `%${escaped}%`;
 
                 const [incidents, resources, tasks] = await Promise.all([
                     supabase

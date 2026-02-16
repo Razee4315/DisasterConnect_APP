@@ -89,6 +89,7 @@ export function useOfflineSync() {
             setSyncing(true);
             let successCount = 0;
             let failCount = 0;
+            const affectedTables = new Set<string>();
 
             for (const mutation of queue) {
                 if (mutation.retries >= MAX_RETRIES) {
@@ -101,6 +102,7 @@ export function useOfflineSync() {
                 const ok = await replayMutation(mutation);
                 if (ok) {
                     dequeue(mutation.id);
+                    affectedTables.add(mutation.table);
                     successCount++;
                 } else {
                     incrementRetries(mutation.id);
@@ -109,8 +111,11 @@ export function useOfflineSync() {
             }
 
             if (successCount > 0) {
-                // Invalidate all queries to refresh data
-                queryClient.invalidateQueries();
+                // Only invalidate queries for tables that were actually synced
+                for (const table of affectedTables) {
+                    queryClient.invalidateQueries({ queryKey: [table] });
+                }
+                queryClient.invalidateQueries({ queryKey: ["dashboard"] });
                 setLastSynced(new Date().toISOString());
                 toast.success(`Synced ${successCount} pending change${successCount > 1 ? "s" : ""}`);
             }

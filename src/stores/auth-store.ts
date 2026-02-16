@@ -47,8 +47,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                 set({ user: session.user, session });
                 await get().fetchProfile();
             }
-        } catch {
-            // No session — user needs to login
+        } catch (err) {
+            console.error("[auth] Failed to initialize session:", err);
         } finally {
             set({ isLoading: false, isInitialized: true });
         }
@@ -121,11 +121,16 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         const { user } = get();
         if (!user) return;
 
-        const { data } = await supabase
+        const { data, error } = await supabase
             .from("profiles")
             .select("*")
             .eq("id", user.id)
             .single();
+
+        if (error) {
+            console.error("[auth] Failed to fetch profile:", error.message);
+            return;
+        }
 
         if (data) {
             set({ profile: data as Profile });
