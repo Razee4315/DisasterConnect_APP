@@ -7,7 +7,6 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -36,7 +35,6 @@ import {
     Search,
     AlertOctagon,
     User,
-    Settings,
     LogOut,
     Loader2,
 } from "lucide-react";
@@ -130,7 +128,7 @@ export function TopBar() {
                 {/* User dropdown */}
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-9 gap-2 px-2">
+                        <Button variant="ghost" className="h-9 gap-2 px-2 rounded-full">
                             <Avatar className="h-7 w-7">
                                 <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
                                     {initials}
@@ -141,28 +139,37 @@ export function TopBar() {
                             </span>
                         </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                        <DropdownMenuLabel className="font-normal">
-                            <p className="text-sm font-medium">
-                                {profile?.first_name} {profile?.last_name}
-                            </p>
-                            <p className="text-xs text-muted-foreground">{profile?.email}</p>
-                        </DropdownMenuLabel>
+                    <DropdownMenuContent align="end" className="w-56" sideOffset={8}>
+                        {/* User info header */}
+                        <div className="flex items-center gap-3 px-3 py-3">
+                            <Avatar className="h-10 w-10">
+                                <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
+                                    {initials}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold truncate">
+                                    {profile?.first_name} {profile?.last_name}
+                                </p>
+                                <p className="text-xs text-muted-foreground truncate">
+                                    {profile?.email}
+                                </p>
+                                <p className="text-[10px] text-muted-foreground capitalize mt-0.5">
+                                    {profile?.role?.replace("_", " ")}
+                                </p>
+                            </div>
+                        </div>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={() => navigate("/settings")}>
-                            <User className="mr-2 h-4 w-4" />
-                            Profile
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => navigate("/settings")}>
-                            <Settings className="mr-2 h-4 w-4" />
-                            Settings
+                        <DropdownMenuItem onClick={() => navigate("/settings")} className="gap-2 py-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            Profile & Settings
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                             onClick={handleSignOut}
-                            className="text-destructive focus:text-destructive"
+                            className="gap-2 py-2 text-destructive focus:text-destructive focus:bg-destructive/10"
                         >
-                            <LogOut className="mr-2 h-4 w-4" />
+                            <LogOut className="h-4 w-4" />
                             Sign out
                         </DropdownMenuItem>
                     </DropdownMenuContent>
