@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useAuthStore } from "@/stores/auth-store";
 import { useUIStore } from "@/stores/ui-store";
 import { cn } from "@/lib/utils";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -144,6 +144,7 @@ export function Sidebar() {
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Avatar className="h-8 w-8 cursor-default">
+                                    {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt="Avatar" />}
                                     <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
                                         {initials}
                                     </AvatarFallback>
@@ -170,6 +171,7 @@ export function Sidebar() {
                 ) : (
                     <div className="flex items-center gap-3 rounded-lg p-2">
                         <Avatar className="h-8 w-8 shrink-0">
+                            {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt="Avatar" />}
                             <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
                                 {initials}
                             </AvatarFallback>

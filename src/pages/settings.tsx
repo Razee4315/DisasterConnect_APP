@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { User, Palette, Bell, Lock, Info, Loader2, Save, Sun, Moon, Monitor } from "lucide-react";
 import { toast } from "sonner";
+import { AvatarUpload } from "@/components/avatar-upload";
 import { getVersion } from "@tauri-apps/api/app";
 
 const NOTIFICATION_ITEMS = [
@@ -160,6 +161,8 @@ export default function SettingsPage() {
                     <CardDescription className="text-xs">Your personal information</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                    <AvatarUpload />
+                    <Separator />
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <Label className="text-xs">First Name</Label>

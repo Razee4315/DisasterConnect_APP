@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { NotificationPanel } from "@/components/notifications/notification-panel";
 import {
     DropdownMenu,
@@ -130,6 +130,7 @@ export function TopBar() {
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="h-9 gap-2 px-2 rounded-full">
                             <Avatar className="h-7 w-7">
+                                {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt="Avatar" />}
                                 <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
                                     {initials}
                                 </AvatarFallback>
@@ -143,6 +144,7 @@ export function TopBar() {
                         {/* User info header */}
                         <div className="flex items-center gap-3 px-3 py-3">
                             <Avatar className="h-10 w-10">
+                                {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt="Avatar" />}
                                 <AvatarFallback className="bg-primary/10 text-primary text-sm font-semibold">
                                     {initials}
                                 </AvatarFallback>
