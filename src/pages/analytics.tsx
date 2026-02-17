@@ -94,7 +94,7 @@ export default function AnalyticsPage() {
                                 />
                                 <YAxis tick={{ fontSize: 10 }} className="fill-muted-foreground" allowDecimals={false} />
                                 <Tooltip
-                                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: 12 }}
+                                    contentStyle={{ backgroundColor: "var(--color-card)", color: "var(--color-card-foreground)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: 12 }}
                                     labelFormatter={(v: string) => v}
                                 />
                                 <Area type="monotone" dataKey="count" stroke="#3b82f6" fill="url(#areaGrad)" strokeWidth={2} />
@@ -126,7 +126,7 @@ export default function AnalyticsPage() {
                                         ))}
                                     </Pie>
                                     <Tooltip
-                                        contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: 12 }}
+                                        contentStyle={{ backgroundColor: "var(--color-card)", color: "var(--color-card-foreground)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: 12 }}
                                     />
                                     <Legend iconSize={8} wrapperStyle={{ fontSize: 11 }} />
                                 </PieChart>
@@ -152,7 +152,7 @@ export default function AnalyticsPage() {
                                 <XAxis type="number" tick={{ fontSize: 10 }} className="fill-muted-foreground" allowDecimals={false} />
                                 <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={120} className="fill-muted-foreground" />
                                 <Tooltip
-                                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: 12 }}
+                                    contentStyle={{ backgroundColor: "var(--color-card)", color: "var(--color-card-foreground)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: 12 }}
                                 />
                                 <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
                             </BarChart>
@@ -172,7 +172,7 @@ export default function AnalyticsPage() {
                                 <XAxis dataKey="name" tick={{ fontSize: 9 }} className="fill-muted-foreground" />
                                 <YAxis tick={{ fontSize: 10 }} className="fill-muted-foreground" allowDecimals={false} />
                                 <Tooltip
-                                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: 12 }}
+                                    contentStyle={{ backgroundColor: "var(--color-card)", color: "var(--color-card-foreground)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: 12 }}
                                 />
                                 <Legend iconSize={8} wrapperStyle={{ fontSize: 11 }} />
                                 <Bar dataKey="available" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} />
@@ -197,7 +197,7 @@ export default function AnalyticsPage() {
                                 <XAxis dataKey="name" tick={{ fontSize: 10 }} className="fill-muted-foreground" />
                                 <YAxis tick={{ fontSize: 10 }} className="fill-muted-foreground" allowDecimals={false} />
                                 <Tooltip
-                                    contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: 12 }}
+                                    contentStyle={{ backgroundColor: "var(--color-card)", color: "var(--color-card-foreground)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: 12 }}
                                 />
                                 <Legend iconSize={8} wrapperStyle={{ fontSize: 11 }} />
                                 <Bar dataKey="created" fill="#f59e0b" radius={[4, 4, 0, 0]} />
@@ -230,7 +230,7 @@ export default function AnalyticsPage() {
                                         ))}
                                     </Pie>
                                     <Tooltip
-                                        contentStyle={{ backgroundColor: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: "8px", fontSize: 12 }}
+                                        contentStyle={{ backgroundColor: "var(--color-card)", color: "var(--color-card-foreground)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: 12 }}
                                     />
                                     <Legend iconSize={8} wrapperStyle={{ fontSize: 11 }} />
                                 </PieChart>

@@ -95,6 +95,7 @@ export function SeverityChart({ data, isLoading }: SeverityChartProps) {
                   ))}
                 </Pie>
                 <Tooltip
+                  contentStyle={{ backgroundColor: "var(--color-card)", color: "var(--color-card-foreground)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: 12 }}
                   formatter={(value: number, name: string) => [
                     value,
                     SEVERITY_LABELS[name] ?? name,
@@ -182,7 +183,7 @@ export function ResourceStatusChart({ data, isLoading }: ResourceChartProps) {
                 axisLine={false}
                 width={30}
               />
-              <Tooltip />
+              <Tooltip contentStyle={{ backgroundColor: "var(--color-card)", color: "var(--color-card-foreground)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: 12 }} />
               <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                 {chartData?.map((entry, i) => (
                   <Cell key={i} fill={entry.fill} />
