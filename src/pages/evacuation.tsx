@@ -195,8 +195,15 @@ export default function EvacuationPage() {
                 <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
             ) : routes.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                    <Route className="h-10 w-10 mb-2" />
-                    <p className="text-sm">No evacuation routes found</p>
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted mb-3">
+                        <Route className="h-7 w-7 opacity-50" />
+                    </div>
+                    <p className="text-sm font-medium text-foreground">No evacuation routes found</p>
+                    <p className="text-xs mt-1 max-w-xs text-center">Plan and map evacuation routes to guide people to safety during emergencies.</p>
+                    <Button className="mt-4 gap-1.5" variant="outline" onClick={openCreate}>
+                        <Plus className="h-4 w-4" />
+                        Create First Route
+                    </Button>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">

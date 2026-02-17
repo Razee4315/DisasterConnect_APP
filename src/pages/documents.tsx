@@ -190,8 +190,15 @@ export default function DocumentsPage() {
                 <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
             ) : documents.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
-                    <FileText className="h-10 w-10 mb-2" />
-                    <p className="text-sm">No documents found</p>
+                    <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted mb-3">
+                        <FileText className="h-7 w-7 opacity-50" />
+                    </div>
+                    <p className="text-sm font-medium text-foreground">No documents found</p>
+                    <p className="text-xs mt-1 max-w-xs text-center">Upload reports, maps, and other files to share with your team.</p>
+                    <Button className="mt-4 gap-1.5" variant="outline" onClick={() => fileRef.current?.click()}>
+                        <Upload className="h-4 w-4" />
+                        Upload First Document
+                    </Button>
                 </div>
             ) : (
                 <div className="border rounded-lg overflow-auto">
