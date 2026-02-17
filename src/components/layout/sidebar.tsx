@@ -106,13 +106,13 @@ export function Sidebar() {
             <Separator className="bg-sidebar-border" />
 
             {/* Main navigation */}
-            <nav className={cn("flex-1 overflow-y-auto py-2 scrollable", sidebarCollapsed ? "px-1.5" : "px-2")}>
-                <div className="space-y-0.5">
+            <nav className={cn("flex-1 overflow-y-auto py-2 scrollable", sidebarCollapsed ? "px-1" : "px-2")}>
+                <div className={cn(sidebarCollapsed ? "flex flex-col items-center gap-1" : "space-y-0.5")}>
                     {NAV_ITEMS.map(({ label, icon: Icon, href }) => (
                         <SidebarLink
                             key={href}
                             label={label}
-                            icon={<Icon className="h-4 w-4 shrink-0" />}
+                            icon={<Icon className={cn("shrink-0", sidebarCollapsed ? "h-5 w-5" : "h-4 w-4")} />}
                             href={href}
                             collapsed={sidebarCollapsed}
                         />
@@ -123,13 +123,13 @@ export function Sidebar() {
             <Separator className="bg-sidebar-border" />
 
             {/* Bottom section */}
-            <div className={cn("py-2 space-y-0.5", sidebarCollapsed ? "px-1.5" : "px-2")}>
+            <div className={cn("py-2", sidebarCollapsed ? "px-1 flex flex-col items-center gap-1" : "px-2 space-y-0.5")}>
                 {BOTTOM_ITEMS.filter((item) => !("adminOnly" in item) || isAdmin).map(
                     ({ label, icon: Icon, href }) => (
                         <SidebarLink
                             key={href}
                             label={label}
-                            icon={<Icon className="h-4 w-4" />}
+                            icon={<Icon className={cn(sidebarCollapsed ? "h-5 w-5" : "h-4 w-4")} />}
                             href={href}
                             collapsed={sidebarCollapsed}
                         />
@@ -140,12 +140,12 @@ export function Sidebar() {
             <Separator className="bg-sidebar-border" />
 
             {/* User footer */}
-            <div className="p-2">
+            <div className={cn("p-2", sidebarCollapsed && "flex flex-col items-center")}>
                 {sidebarCollapsed ? (
-                    <div className="flex flex-col items-center gap-2">
+                    <div className="flex flex-col items-center gap-1.5">
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Avatar className="h-8 w-8 cursor-default">
+                                <Avatar className="h-9 w-9 cursor-default">
                                     {profile?.avatar_url && <AvatarImage src={profile.avatar_url} alt="Avatar" />}
                                     <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
                                         {initials}
@@ -161,10 +161,11 @@ export function Sidebar() {
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    className="h-7 w-7 text-sidebar-foreground hover:bg-sidebar-accent hover:text-destructive"
+                                    className="h-8 w-8 text-sidebar-foreground hover:bg-sidebar-accent hover:text-destructive"
                                     onClick={handleSignOut}
+                                    aria-label="Sign out"
                                 >
-                                    <LogOut className="h-3.5 w-3.5" />
+                                    <LogOut className="h-4 w-4" />
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent side="right">Sign out</TooltipContent>
@@ -225,7 +226,7 @@ function SidebarLink({
                         to={href}
                         className={({ isActive }) =>
                             cn(
-                                "flex h-9 w-full items-center justify-center rounded-md transition-colors",
+                                "flex h-10 w-10 items-center justify-center rounded-lg transition-colors",
                                 isActive
                                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
                                     : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground"
