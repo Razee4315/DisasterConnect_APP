@@ -355,6 +355,7 @@ export default function IncidentsPage() {
                             variant="ghost"
                             size="icon-xs"
                             onClick={(e) => handleEdit(e, inc)}
+                            aria-label="Edit incident"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
@@ -365,6 +366,7 @@ export default function IncidentsPage() {
                               e.stopPropagation();
                               setDeleteTarget(inc);
                             }}
+                            aria-label="Delete incident"
                           >
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
                           </Button>
@@ -391,6 +393,7 @@ export default function IncidentsPage() {
                   size="icon-xs"
                   disabled={page === 0}
                   onClick={() => setPage((p) => p - 1)}
+                  aria-label="Previous page"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" />
                 </Button>
@@ -402,6 +405,7 @@ export default function IncidentsPage() {
                   size="icon-xs"
                   disabled={page >= totalPages - 1}
                   onClick={() => setPage((p) => p + 1)}
+                  aria-label="Next page"
                 >
                   <ChevronRight className="h-3.5 w-3.5" />
                 </Button>

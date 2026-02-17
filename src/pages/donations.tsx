@@ -196,10 +196,10 @@ export default function DonationsPage() {
                                     </TableCell>
                                     <TableCell>
                                         <div className="flex gap-1">
-                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(d)}>
+                                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(d)} aria-label="Edit donation">
                                                 <Pencil className="h-3.5 w-3.5" />
                                             </Button>
-                                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ id: d.id, name: d.donor_name })}>
+                                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ id: d.id, name: d.donor_name })} aria-label="Delete donation">
                                                 <Trash2 className="h-3.5 w-3.5" />
                                             </Button>
                                         </div>

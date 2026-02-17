@@ -420,6 +420,7 @@ export default function AlertsPage() {
                             variant="ghost"
                             size="icon-xs"
                             onClick={(e) => handleEdit(e, alert)}
+                            aria-label="Edit alert"
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
@@ -430,6 +431,7 @@ export default function AlertsPage() {
                               e.stopPropagation();
                               setDeleteTarget(alert);
                             }}
+                            aria-label="Delete alert"
                           >
                             <Trash2 className="h-3.5 w-3.5 text-destructive" />
                           </Button>
@@ -456,6 +458,7 @@ export default function AlertsPage() {
                   size="icon-xs"
                   disabled={page === 0}
                   onClick={() => setPage((p) => p - 1)}
+                  aria-label="Previous page"
                 >
                   <ChevronLeft className="h-3.5 w-3.5" />
                 </Button>
@@ -467,6 +470,7 @@ export default function AlertsPage() {
                   size="icon-xs"
                   disabled={page >= totalPages - 1}
                   onClick={() => setPage((p) => p + 1)}
+                  aria-label="Next page"
                 >
                   <ChevronRight className="h-3.5 w-3.5" />
                 </Button>

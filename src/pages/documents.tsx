@@ -232,6 +232,7 @@ export default function DocumentsPage() {
                                                 size="icon"
                                                 className="h-7 w-7"
                                                 onClick={() => handleDownload(d.file_path, d.name)}
+                                                aria-label="Download file"
                                             >
                                                 <Download className="h-3.5 w-3.5" />
                                             </Button>
@@ -240,6 +241,7 @@ export default function DocumentsPage() {
                                                 size="icon"
                                                 className="h-7 w-7 text-destructive"
                                                 onClick={() => setDeleteTarget({ id: d.id, filePath: d.file_path, name: d.name })}
+                                                aria-label="Delete document"
                                             >
                                                 <Trash2 className="h-3.5 w-3.5" />
                                             </Button>

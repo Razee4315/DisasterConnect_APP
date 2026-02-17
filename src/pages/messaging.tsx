@@ -99,7 +99,7 @@ function ChannelList({
             {/* Header */}
             <div className="flex items-center justify-between p-3 border-b border-border">
                 <h3 className="text-sm font-semibold">Channels</h3>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onCreateNew}>
+                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onCreateNew} aria-label="Create new channel">
                     <Plus className="h-4 w-4" />
                 </Button>
             </div>
@@ -284,6 +284,7 @@ function MessageThread({
                     className="shrink-0"
                     onClick={handleSend}
                     disabled={!input.trim() || sendMessage.isPending}
+                    aria-label="Send message"
                 >
                     <Send className="h-4 w-4" />
                 </Button>

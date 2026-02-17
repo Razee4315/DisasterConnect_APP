@@ -243,10 +243,10 @@ export default function EvacuationPage() {
                                         {format(new Date(r.created_at), "MMM d, yyyy")}
                                     </span>
                                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(r)}>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(r)} aria-label="Edit route">
                                             <Pencil className="h-3.5 w-3.5" />
                                         </Button>
-                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ id: r.id, name: r.name })}>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ id: r.id, name: r.name })} aria-label="Delete route">
                                             <Trash2 className="h-3.5 w-3.5" />
                                         </Button>
                                     </div>

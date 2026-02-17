@@ -93,6 +93,7 @@ export function Sidebar() {
                     size="icon"
                     className="h-8 w-8 text-sidebar-foreground hover:bg-sidebar-accent"
                     onClick={toggleSidebar}
+                    aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
                 >
                     {sidebarCollapsed ? (
                         <PanelLeft className="h-4 w-4" />
