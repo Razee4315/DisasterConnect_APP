@@ -52,6 +52,7 @@ import {
 import { format } from "date-fns";
 import type { DonationType, DonationStatus } from "@/types/enums";
 import type { Donation } from "@/types/database";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 
 const DONATION_TYPES: DonationType[] = [
     "monetary", "medical_supplies", "food", "water", "clothing", "shelter_materials", "equipment", "other",
@@ -73,6 +74,7 @@ export default function DonationsPage() {
     const [filters, setFilters] = useState<DonationFilters>({});
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editing, setEditing] = useState<(Donation & { profiles: { first_name: string; last_name: string } | null }) | null>(null);
+    const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
     const { data: donations = [], isLoading } = useDonations(filters);
     const { data: stats } = useDonationStats();
@@ -197,7 +199,7 @@ export default function DonationsPage() {
                                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(d)}>
                                                 <Pencil className="h-3.5 w-3.5" />
                                             </Button>
-                                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteMut.mutate(d.id)}>
+                                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ id: d.id, name: d.donor_name })}>
                                                 <Trash2 className="h-3.5 w-3.5" />
                                             </Button>
                                         </div>
@@ -208,6 +210,20 @@ export default function DonationsPage() {
                     </Table>
                 </div>
             )}
+
+            {/* Delete Confirmation */}
+            <ConfirmDeleteDialog
+                open={!!deleteTarget}
+                onOpenChange={(open) => !open && setDeleteTarget(null)}
+                onConfirm={() => {
+                    if (deleteTarget) {
+                        deleteMut.mutate(deleteTarget.id, { onSuccess: () => setDeleteTarget(null) });
+                    }
+                }}
+                title={`Delete donation from ${deleteTarget?.name}?`}
+                description="This action cannot be undone. This will permanently delete this donation record."
+                isPending={deleteMut.isPending}
+            />
 
             {/* Create / Edit Dialog */}
             <DonationDialog

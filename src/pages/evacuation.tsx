@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import type { EvacuationRoute } from "@/types/database";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 
 /* ── Lazy Leaflet (only loaded when map is shown) ──────────────── */
 import { MapContainer, TileLayer, Polyline, Marker, Popup, useMapEvents } from "react-leaflet";
@@ -65,6 +66,7 @@ export default function EvacuationPage() {
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editing, setEditing] = useState<(EvacuationRoute & { profiles: { first_name: string; last_name: string } | null }) | null>(null);
     const [showMap, setShowMap] = useState(true);
+    const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
     const { data: routes = [], isLoading } = useEvacuationRoutes(filters);
     const { data: incidents = [] } = useIncidents();
@@ -244,7 +246,7 @@ export default function EvacuationPage() {
                                         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(r)}>
                                             <Pencil className="h-3.5 w-3.5" />
                                         </Button>
-                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => deleteMut.mutate(r.id)}>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ id: r.id, name: r.name })}>
                                             <Trash2 className="h-3.5 w-3.5" />
                                         </Button>
                                     </div>
@@ -254,6 +256,20 @@ export default function EvacuationPage() {
                     ))}
                 </div>
             )}
+
+            {/* Delete Confirmation */}
+            <ConfirmDeleteDialog
+                open={!!deleteTarget}
+                onOpenChange={(open) => !open && setDeleteTarget(null)}
+                onConfirm={() => {
+                    if (deleteTarget) {
+                        deleteMut.mutate(deleteTarget.id, { onSuccess: () => setDeleteTarget(null) });
+                    }
+                }}
+                title={`Delete route "${deleteTarget?.name}"?`}
+                description="This action cannot be undone. This will permanently delete this evacuation route and all its waypoints."
+                isPending={deleteMut.isPending}
+            />
 
             {/* Create / Edit Dialog */}
             <EvacRouteDialog

@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 
 function fileIcon(mime: string | null) {
     if (!mime) return <File className="h-5 w-5 text-muted-foreground" />;
@@ -62,6 +63,7 @@ export default function DocumentsPage() {
     const [filters, setFilters] = useState<DocumentFilters>({});
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
+    const [deleteTarget, setDeleteTarget] = useState<{ id: string; filePath: string; name: string } | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
     const [uploadIncident, setUploadIncident] = useState("");
 
@@ -237,7 +239,7 @@ export default function DocumentsPage() {
                                                 variant="ghost"
                                                 size="icon"
                                                 className="h-7 w-7 text-destructive"
-                                                onClick={() => deleteMut.mutate({ id: d.id, filePath: d.file_path })}
+                                                onClick={() => setDeleteTarget({ id: d.id, filePath: d.file_path, name: d.name })}
                                             >
                                                 <Trash2 className="h-3.5 w-3.5" />
                                             </Button>
@@ -249,6 +251,23 @@ export default function DocumentsPage() {
                     </Table>
                 </div>
             )}
+
+            {/* Delete Confirmation */}
+            <ConfirmDeleteDialog
+                open={!!deleteTarget}
+                onOpenChange={(open) => !open && setDeleteTarget(null)}
+                onConfirm={() => {
+                    if (deleteTarget) {
+                        deleteMut.mutate(
+                            { id: deleteTarget.id, filePath: deleteTarget.filePath },
+                            { onSuccess: () => setDeleteTarget(null) }
+                        );
+                    }
+                }}
+                title={`Delete "${deleteTarget?.name}"?`}
+                description="This action cannot be undone. The file will be permanently removed from storage."
+                isPending={deleteMut.isPending}
+            />
         </div>
     );
 }
