@@ -234,7 +234,7 @@ export default function ReportsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-xl font-bold tracking-tight">Reports</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Reports</h1>
                     <p className="text-sm text-muted-foreground">
                         Generate PDF reports and view operational summaries
                     </p>

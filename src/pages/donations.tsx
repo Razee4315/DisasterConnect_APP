@@ -99,7 +99,7 @@ export default function DonationsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-xl font-bold tracking-tight">Donations</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Donations</h1>
                     <p className="text-sm text-muted-foreground">Track monetary and physical donations</p>
                 </div>
                 <Button className="gap-1.5" onClick={openCreate}>

@@ -120,7 +120,7 @@ export default function DocumentsPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-xl font-bold tracking-tight">Documents</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Documents</h1>
                     <p className="text-sm text-muted-foreground">Upload, manage, and download files</p>
                 </div>
                 <Button className="gap-1.5" onClick={() => fileRef.current?.click()} disabled={uploading}>

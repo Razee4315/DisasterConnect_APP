@@ -51,7 +51,7 @@ export default function AnalyticsPage() {
         <div className="space-y-4">
             {/* Header */}
             <div>
-                <h1 className="text-xl font-bold tracking-tight">Analytics</h1>
+                <h1 className="text-2xl font-bold tracking-tight">Analytics</h1>
                 <p className="text-sm text-muted-foreground">
                     Operational metrics and trend analysis
                 </p>

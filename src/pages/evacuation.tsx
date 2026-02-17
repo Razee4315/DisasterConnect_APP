@@ -101,7 +101,7 @@ export default function EvacuationPage() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-xl font-bold tracking-tight">Evacuation Routes</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">Evacuation Routes</h1>
                     <p className="text-sm text-muted-foreground">Plan and visualize evacuation paths</p>
                 </div>
                 <div className="flex gap-2">

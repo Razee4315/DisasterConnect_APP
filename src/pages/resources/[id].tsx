@@ -152,7 +152,7 @@ export default function ResourceDetailPage() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">
+            <h1 className="text-2xl font-bold tracking-tight">
               {resource.name}
             </h1>
             <div className="flex items-center gap-2 mt-1">
