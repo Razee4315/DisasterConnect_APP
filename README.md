@@ -32,8 +32,7 @@ DisasterConnect puts everything in one place — real-time incident tracking, re
 
 DisasterConnect is a desktop application for disaster management teams to coordinate emergency response in real time. Built with Tauri for native performance and Supabase for real-time sync.
 
-<!-- Replace with actual screenshot -->
-<img src="demo/dashboard.png" alt="DisasterConnect Dashboard" width="800" />
+<img src="screenshot/dashboard.png" alt="DisasterConnect Dashboard" width="100%" />
 
 ---
 
@@ -56,7 +55,7 @@ DisasterConnect is a desktop application for disaster management teams to coordi
 - **System Tray** — Runs in background with quick-access tray menu
 - **Command Palette** — Spotlight-style search with `Ctrl+K`
 
-<img src="demo/incidents.png" alt="Incident Management" width="800" />
+<img src="screenshot/incident_mangement.png" alt="Incident Management" width="100%" />
 
 ---
 
@@ -95,17 +94,33 @@ macOS support is planned.
 
 ## Screenshots
 
-| Dashboard | Incidents |
-|-----------|-----------|
-| <img src="demo/dashboard.png" width="400" /> | <img src="demo/incidents.png" width="400" /> |
+| Dashboard | Incident Management |
+|:-:|:-:|
+| <img src="screenshot/dashboard.png" alt="Dashboard" width="100%" /> | <img src="screenshot/incident_mangement.png" alt="Incident Management" width="100%" /> |
 
-| Tasks (Kanban) | Messaging |
-|----------------|-----------|
-| <img src="demo/tasks.png" width="400" /> | <img src="demo/messaging.png" width="400" /> |
+| Resource Management | Map View |
+|:-:|:-:|
+| <img src="screenshot/resouce_management.png" alt="Resource Management" width="100%" /> | <img src="screenshot/map.png" alt="Map View" width="100%" /> |
 
-| Map View | Analytics |
-|----------|-----------|
-| <img src="demo/map.png" width="400" /> | <img src="demo/analytics.png" width="400" /> |
+| Task Board (Kanban) | Messaging |
+|:-:|:-:|
+| <img src="screenshot/task.png" alt="Task Board" width="100%" /> | <img src="screenshot/messaging.png" alt="Messaging" width="100%" /> |
+
+| Teams | Alerts |
+|:-:|:-:|
+| <img src="screenshot/teams.png" alt="Teams" width="100%" /> | <img src="screenshot/alerts.png" alt="Alerts" width="100%" /> |
+
+| Evacuation Routes | Donations |
+|:-:|:-:|
+| <img src="screenshot/Evacation.png" alt="Evacuation Routes" width="100%" /> | <img src="screenshot/donation.png" alt="Donations" width="100%" /> |
+
+| Reports | Analytics |
+|:-:|:-:|
+| <img src="screenshot/Report.png" alt="Reports" width="100%" /> | <img src="screenshot/analysis_page.png" alt="Analytics" width="100%" /> |
+
+| Admin Panel | Settings |
+|:-:|:-:|
+| <img src="screenshot/admin_panel.png" alt="Admin Panel" width="100%" /> | <img src="screenshot/Settings.png" alt="Settings" width="100%" /> |
 
 ---
 
