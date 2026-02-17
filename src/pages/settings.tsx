@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useAuthStore } from "@/stores/auth-store";
 import { useUIStore } from "@/stores/ui-store";
 import { supabase } from "@/lib/supabase";
@@ -52,6 +52,27 @@ export default function SettingsPage() {
     // About
     const [appVersion, setAppVersion] = useState("");
     const platformInfo = navigator.platform || "unknown";
+
+    // Track unsaved profile changes
+    const profileDirty = useMemo(() => {
+        if (!profile) return false;
+        return (
+            firstName !== (profile.first_name ?? "") ||
+            lastName !== (profile.last_name ?? "") ||
+            phone !== (profile.phone ?? "") ||
+            organization !== (profile.organization ?? "")
+        );
+    }, [profile, firstName, lastName, phone, organization]);
+
+    // Warn before leaving with unsaved changes
+    useEffect(() => {
+        if (!profileDirty) return;
+        const handler = (e: BeforeUnloadEvent) => {
+            e.preventDefault();
+        };
+        window.addEventListener("beforeunload", handler);
+        return () => window.removeEventListener("beforeunload", handler);
+    }, [profileDirty]);
 
     useEffect(() => {
         getVersion().then(setAppVersion).catch(() => setAppVersion("unknown"));
@@ -194,8 +215,11 @@ export default function SettingsPage() {
                         </div>
                     </div>
                     <Separator />
-                    <div className="flex justify-end">
-                        <Button onClick={saveProfile} disabled={saving} className="gap-1.5">
+                    <div className="flex items-center justify-end gap-3">
+                        {profileDirty && (
+                            <span className="text-xs text-amber-600 dark:text-amber-400">Unsaved changes</span>
+                        )}
+                        <Button onClick={saveProfile} disabled={saving || !profileDirty} className="gap-1.5">
                             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                             Save Changes
                         </Button>
