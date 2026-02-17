@@ -5,10 +5,12 @@ import {
     useMessages,
     useSendMessage,
     useCreateChannel,
+    useJoinChannel,
     useChannelRealtime,
     type MessageWithSender,
 } from "@/hooks/use-messages";
 import { useAuthStore } from "@/stores/auth-store";
+import { useProfiles } from "@/hooks/use-tasks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -163,15 +165,25 @@ function ChannelList({
 function MessageThread({
     channelId,
     channelName,
+    channelType,
 }: {
     channelId: string;
     channelName: string;
+    channelType: string;
 }) {
     const userId = useAuthStore((s) => s.user?.id);
     const { data: messages = [], isLoading } = useMessages(channelId);
     const sendMessage = useSendMessage();
+    const joinChannel = useJoinChannel();
     const [input, setInput] = useState("");
     const scrollRef = useRef<HTMLDivElement>(null);
+
+    // Auto-join non-DM channels so user can send messages
+    useEffect(() => {
+        if (channelId && channelType !== "direct") {
+            joinChannel.mutate(channelId);
+        }
+    }, [channelId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // Subscribe to realtime
     useChannelRealtime(channelId);
@@ -302,9 +314,15 @@ function CreateChannelDialog({
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }) {
+    const userId = useAuthStore((s) => s.user?.id);
     const [name, setName] = useState("");
     const [type, setType] = useState<ChannelType>("team");
+    const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
     const createChannel = useCreateChannel();
+    const { data: allProfiles = [] } = useProfiles();
+
+    // Profiles excluding current user
+    const otherProfiles = allProfiles.filter((p) => p.id !== userId);
 
     const handleCreate = async () => {
         if (!name.trim()) {
@@ -312,18 +330,31 @@ function CreateChannelDialog({
             return;
         }
 
+        if (type === "direct" && selectedMembers.length === 0) {
+            toast.error("Select at least one member for a direct message");
+            return;
+        }
+
         try {
             await createChannel.mutateAsync({
                 name: name.trim(),
                 type,
+                member_ids: selectedMembers,
             });
             toast.success("Channel created");
             onOpenChange(false);
             setName("");
+            setSelectedMembers([]);
         } catch (err: any) {
             console.error("[channels] Failed to create channel:", err);
             toast.error(err?.message || "Failed to create channel");
         }
+    };
+
+    const toggleMember = (id: string) => {
+        setSelectedMembers((prev) =>
+            prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]
+        );
     };
 
     return (
@@ -334,27 +365,63 @@ function CreateChannelDialog({
                 </DialogHeader>
                 <div className="space-y-3">
                     <div className="space-y-1.5">
-                        <label className="text-sm font-medium">Channel Name</label>
-                        <Input
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            placeholder="e.g. flood-response"
-                            data-selectable
-                        />
-                    </div>
-                    <div className="space-y-1.5">
                         <label className="text-sm font-medium">Type</label>
-                        <Select value={type} onValueChange={(v) => setType(v as ChannelType)}>
+                        <Select value={type} onValueChange={(v) => {
+                            setType(v as ChannelType);
+                            setSelectedMembers([]);
+                        }}>
                             <SelectTrigger>
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="incident">Incident</SelectItem>
                                 <SelectItem value="team">Team</SelectItem>
-                                <SelectItem value="direct">Direct</SelectItem>
+                                <SelectItem value="direct">Direct Message</SelectItem>
                                 <SelectItem value="broadcast">Broadcast</SelectItem>
                             </SelectContent>
                         </Select>
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="text-sm font-medium">Channel Name</label>
+                        <Input
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                            placeholder={type === "direct" ? "e.g. Chat with Ali" : "e.g. flood-response"}
+                            data-selectable
+                        />
+                    </div>
+
+                    {/* Member picker */}
+                    <div className="space-y-1.5">
+                        <label className="text-sm font-medium">
+                            {type === "direct" ? "Select Member" : "Add Members (optional)"}
+                        </label>
+                        <div className="max-h-40 overflow-y-auto rounded-md border border-input">
+                            {otherProfiles.length === 0 ? (
+                                <p className="text-xs text-muted-foreground p-3 text-center">No other users found</p>
+                            ) : (
+                                otherProfiles.map((p) => {
+                                    const isSelected = selectedMembers.includes(p.id);
+                                    return (
+                                        <button
+                                            key={p.id}
+                                            type="button"
+                                            onClick={() => toggleMember(p.id)}
+                                            className={`w-full flex items-center gap-2 px-3 py-1.5 text-left text-sm hover:bg-muted/50 transition-colors ${isSelected ? "bg-primary/10 text-primary" : ""}`}
+                                        >
+                                            <div className={`h-4 w-4 rounded border flex items-center justify-center shrink-0 ${isSelected ? "bg-primary border-primary" : "border-input"}`}>
+                                                {isSelected && <span className="text-[10px] text-primary-foreground">✓</span>}
+                                            </div>
+                                            <span className="truncate">{p.first_name} {p.last_name}</span>
+                                            <span className="text-xs text-muted-foreground ml-auto">{p.role}</span>
+                                        </button>
+                                    );
+                                })
+                            )}
+                        </div>
+                        {selectedMembers.length > 0 && (
+                            <p className="text-xs text-muted-foreground">{selectedMembers.length} member{selectedMembers.length > 1 ? "s" : ""} selected</p>
+                        )}
                     </div>
                 </div>
                 <DialogFooter>
@@ -402,6 +469,7 @@ export default function MessagingPage() {
                 <MessageThread
                     channelId={activeChannel.id}
                     channelName={activeChannel.name}
+                    channelType={activeChannel.type}
                 />
             ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">

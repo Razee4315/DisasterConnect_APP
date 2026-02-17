@@ -33,28 +33,50 @@ export function useChannels() {
     return useQuery({
         queryKey: ["channels", userId],
         queryFn: async (): Promise<ChannelWithMeta[]> => {
-            // Get channels user is member of
-            const { data: memberships, error: memError } = await supabase
-                .from("channel_members")
-                .select("channel_id")
-                .eq("user_id", userId!);
-
-            if (memError) throw memError;
-            if (!memberships?.length) return [];
-
-            const channelIds = memberships.map((m) => m.channel_id);
-
-            const { data: channels, error: chError } = await supabase
+            // Query channels directly — RLS filters visibility:
+            // Non-DM channels visible to all, DM channels visible to members/creator
+            const { data, error } = await supabase
                 .from("channels")
                 .select("*")
-                .in("id", channelIds)
                 .eq("is_active", true)
                 .order("created_at", { ascending: false });
 
-            if (chError) throw chError;
-            return (channels ?? []) as ChannelWithMeta[];
+            if (error) throw error;
+            return (data ?? []) as ChannelWithMeta[];
         },
         enabled: !!userId,
+    });
+}
+
+// ─── Auto-Join Channel (for non-DM channels) ────────────────────
+
+export function useJoinChannel() {
+    const queryClient = useQueryClient();
+    const userId = useAuthStore((s) => s.user?.id);
+
+    return useMutation({
+        mutationFn: async (channelId: string) => {
+            if (!userId) throw new Error("Not authenticated");
+
+            // Check if already a member
+            const { data: existing } = await supabase
+                .from("channel_members")
+                .select("id")
+                .eq("channel_id", channelId)
+                .eq("user_id", userId)
+                .maybeSingle();
+
+            if (existing) return; // already a member
+
+            const { error } = await supabase
+                .from("channel_members")
+                .insert({ channel_id: channelId, user_id: userId });
+
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["channels"] });
+        },
     });
 }
 
