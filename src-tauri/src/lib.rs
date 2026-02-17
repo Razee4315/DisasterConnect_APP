@@ -22,6 +22,28 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::default().build())
         .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_single_instance::init(|app, args, _cwd| {
+            // Focus the existing window when a second instance is launched
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.show();
+                let _ = window.set_focus();
+            }
+
+            // Forward any deep link URL from the second instance's args
+            for arg in &args {
+                if arg.starts_with("disasterconnect://") {
+                    if let Some(window) = app.get_webview_window("main") {
+                        let js = format!(
+                            "window.__DEEP_LINK_URL__ = '{}'; window.dispatchEvent(new CustomEvent('deep-link', {{ detail: '{}' }}));",
+                            arg.replace('\'', "\\'"),
+                            arg.replace('\'', "\\'")
+                        );
+                        let _ = window.eval(&js);
+                    }
+                    break;
+                }
+            }
+        }))
         .setup(|app| {
             // Handle deep link URLs (e.g. disasterconnect://auth/callback#access_token=...)
             #[cfg(desktop)]
