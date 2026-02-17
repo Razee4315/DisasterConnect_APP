@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   AlertTriangle,
@@ -15,6 +16,7 @@ interface StatCardProps {
   icon: LucideIcon;
   iconColor: string;
   accent?: boolean;
+  href?: string;
 }
 
 function StatCard({
@@ -24,9 +26,15 @@ function StatCard({
   icon: Icon,
   iconColor,
   accent,
+  href,
 }: StatCardProps) {
+  const navigate = useNavigate();
+
   return (
-    <Card className={accent && value > 0 ? "border-destructive/50 bg-destructive/5" : ""}>
+    <Card
+      className={`${accent && value > 0 ? "border-destructive/50 bg-destructive/5" : ""} ${href ? "cursor-pointer hover:shadow-md transition-shadow" : ""}`}
+      onClick={href ? () => navigate(href) : undefined}
+    >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {label}
@@ -73,6 +81,7 @@ export function StatsGrid({ stats, isLoading }: StatsGridProps) {
         value={stats.activeIncidents}
         icon={AlertTriangle}
         iconColor="text-severity-high"
+        href="/incidents"
       />
       <StatCard
         label="Total Resources"
@@ -80,6 +89,7 @@ export function StatsGrid({ stats, isLoading }: StatsGridProps) {
         subtitle={`${stats.availableResources} available`}
         icon={Package}
         iconColor="text-success"
+        href="/resources"
       />
       <StatCard
         label="Active SOS"
@@ -87,12 +97,14 @@ export function StatsGrid({ stats, isLoading }: StatsGridProps) {
         icon={Radio}
         iconColor="text-destructive"
         accent
+        href="/map"
       />
       <StatCard
         label="My Pending Tasks"
         value={stats.pendingTasks}
         icon={ListTodo}
         iconColor="text-primary"
+        href="/tasks"
       />
     </div>
   );

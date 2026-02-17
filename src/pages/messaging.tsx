@@ -265,17 +265,23 @@ function MessageThread({
             </div>
 
             {/* Input */}
-            <div className="flex items-center gap-2 p-3 border-t border-border">
-                <Input
+            <div className="flex items-end gap-2 p-3 border-t border-border">
+                <textarea
                     placeholder={`Message #${channelName}`}
-                    className="flex-1"
+                    className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    rows={1}
                     value={input}
-                    onChange={(e) => setInput(e.target.value)}
+                    onChange={(e) => {
+                        setInput(e.target.value);
+                        e.target.style.height = "auto";
+                        e.target.style.height = `${Math.min(e.target.scrollHeight, 150)}px`;
+                    }}
                     onKeyDown={handleKeyDown}
                     data-selectable
                 />
                 <Button
                     size="icon"
+                    className="shrink-0"
                     onClick={handleSend}
                     disabled={!input.trim() || sendMessage.isPending}
                 >

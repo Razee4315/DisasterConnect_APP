@@ -313,11 +313,19 @@ export default function IncidentsPage() {
                   return (
                     <TableRow
                       key={inc.id}
-                      className="cursor-pointer"
+                      className={`cursor-pointer ${inc.severity === "critical" ? "bg-red-500/5 hover:bg-red-500/10" : inc.severity === "high" ? "bg-orange-500/5 hover:bg-orange-500/10" : ""}`}
                       onClick={() => navigate(`/incidents/${inc.id}`)}
                     >
                       <TableCell className="font-medium max-w-[280px] truncate">
-                        {inc.title}
+                        <span className="flex items-center gap-2">
+                          {inc.severity === "critical" && inc.status !== "resolved" && (
+                            <span className="relative flex h-2 w-2 shrink-0">
+                              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+                              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+                            </span>
+                          )}
+                          {inc.title}
+                        </span>
                       </TableCell>
                       <TableCell className="text-sm">
                         {formatType(inc.type)}
