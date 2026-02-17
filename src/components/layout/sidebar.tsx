@@ -104,13 +104,13 @@ export function Sidebar() {
             <Separator className="bg-sidebar-border" />
 
             {/* Main navigation */}
-            <nav className="flex-1 overflow-y-auto py-2 px-2 scrollable">
-                <div className="space-y-1">
+            <nav className={cn("flex-1 overflow-y-auto py-2 scrollable", sidebarCollapsed ? "px-1.5" : "px-2")}>
+                <div className="space-y-0.5">
                     {NAV_ITEMS.map(({ label, icon: Icon, href }) => (
                         <SidebarLink
                             key={href}
                             label={label}
-                            icon={<Icon className="h-4 w-4" />}
+                            icon={<Icon className="h-4 w-4 shrink-0" />}
                             href={href}
                             collapsed={sidebarCollapsed}
                         />
@@ -121,7 +121,7 @@ export function Sidebar() {
             <Separator className="bg-sidebar-border" />
 
             {/* Bottom section */}
-            <div className="py-2 px-2 space-y-1">
+            <div className={cn("py-2 space-y-0.5", sidebarCollapsed ? "px-1.5" : "px-2")}>
                 {BOTTOM_ITEMS.filter((item) => !("adminOnly" in item) || isAdmin).map(
                     ({ label, icon: Icon, href }) => (
                         <SidebarLink
@@ -139,19 +139,41 @@ export function Sidebar() {
 
             {/* User footer */}
             <div className="p-2">
-                <div
-                    className={cn(
-                        "flex items-center gap-3 rounded-lg p-2",
-                        sidebarCollapsed && "justify-center"
-                    )}
-                >
-                    <Avatar className="h-8 w-8 shrink-0">
-                        <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
-                            {initials}
-                        </AvatarFallback>
-                    </Avatar>
-
-                    {!sidebarCollapsed && (
+                {sidebarCollapsed ? (
+                    <div className="flex flex-col items-center gap-2">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Avatar className="h-8 w-8 cursor-default">
+                                    <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                                        {initials}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">
+                                {profile?.first_name} {profile?.last_name}
+                            </TooltipContent>
+                        </Tooltip>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-sidebar-foreground hover:bg-sidebar-accent hover:text-destructive"
+                                    onClick={handleSignOut}
+                                >
+                                    <LogOut className="h-3.5 w-3.5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">Sign out</TooltipContent>
+                        </Tooltip>
+                    </div>
+                ) : (
+                    <div className="flex items-center gap-3 rounded-lg p-2">
+                        <Avatar className="h-8 w-8 shrink-0">
+                            <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                                {initials}
+                            </AvatarFallback>
+                        </Avatar>
                         <div className="flex-1 min-w-0">
                             <p className="truncate text-sm font-medium text-sidebar-accent-foreground">
                                 {profile?.first_name} {profile?.last_name}
@@ -160,22 +182,21 @@ export function Sidebar() {
                                 {profile?.role?.replace("_", " ")}
                             </p>
                         </div>
-                    )}
-
-                    <Tooltip>
-                        <TooltipTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-7 w-7 shrink-0 text-sidebar-foreground hover:bg-sidebar-accent hover:text-destructive"
-                                onClick={handleSignOut}
-                            >
-                                <LogOut className="h-3.5 w-3.5" />
-                            </Button>
-                        </TooltipTrigger>
-                        <TooltipContent side="right">Sign out</TooltipContent>
-                    </Tooltip>
-                </div>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 shrink-0 text-sidebar-foreground hover:bg-sidebar-accent hover:text-destructive"
+                                    onClick={handleSignOut}
+                                >
+                                    <LogOut className="h-3.5 w-3.5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent side="right">Sign out</TooltipContent>
+                        </Tooltip>
+                    </div>
+                )}
             </div>
         </aside>
     );
