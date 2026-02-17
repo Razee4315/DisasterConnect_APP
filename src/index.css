@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode (toggled via .dark on <html>) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ============================================================
    DisasterConnect — Design Tokens
    ============================================================ */
@@ -68,49 +71,47 @@
    ============================================================ */
 
 html.dark {
-  @theme {
-    --color-primary: oklch(0.7 0.18 250);
-    --color-primary-foreground: oklch(0.15 0.01 250);
+  --color-primary: oklch(0.7 0.18 250);
+  --color-primary-foreground: oklch(0.15 0.01 250);
 
-    --color-destructive: oklch(0.65 0.2 27);
-    --color-destructive-foreground: oklch(0.98 0 0);
+  --color-destructive: oklch(0.65 0.2 27);
+  --color-destructive-foreground: oklch(0.98 0 0);
 
-    --color-warning: oklch(0.75 0.18 75);
-    --color-warning-foreground: oklch(0.2 0.05 75);
+  --color-warning: oklch(0.75 0.18 75);
+  --color-warning-foreground: oklch(0.2 0.05 75);
 
-    --color-success: oklch(0.65 0.17 145);
-    --color-success-foreground: oklch(0.98 0 0);
+  --color-success: oklch(0.65 0.17 145);
+  --color-success-foreground: oklch(0.98 0 0);
 
-    --color-background: oklch(0.14 0.01 250);
-    --color-foreground: oklch(0.93 0.005 250);
+  --color-background: oklch(0.14 0.01 250);
+  --color-foreground: oklch(0.93 0.005 250);
 
-    --color-card: oklch(0.18 0.01 250);
-    --color-card-foreground: oklch(0.93 0.005 250);
+  --color-card: oklch(0.18 0.01 250);
+  --color-card-foreground: oklch(0.93 0.005 250);
 
-    --color-muted: oklch(0.22 0.01 250);
-    --color-muted-foreground: oklch(0.6 0.02 250);
+  --color-muted: oklch(0.22 0.01 250);
+  --color-muted-foreground: oklch(0.6 0.02 250);
 
-    --color-accent: oklch(0.22 0.015 250);
-    --color-accent-foreground: oklch(0.93 0.005 250);
+  --color-accent: oklch(0.22 0.015 250);
+  --color-accent-foreground: oklch(0.93 0.005 250);
 
-    --color-popover: oklch(0.18 0.01 250);
-    --color-popover-foreground: oklch(0.93 0.005 250);
+  --color-popover: oklch(0.18 0.01 250);
+  --color-popover-foreground: oklch(0.93 0.005 250);
 
-    --color-border: oklch(0.28 0.015 250);
-    --color-input: oklch(0.28 0.015 250);
-    --color-ring: oklch(0.7 0.18 250);
+  --color-border: oklch(0.28 0.015 250);
+  --color-input: oklch(0.28 0.015 250);
+  --color-ring: oklch(0.7 0.18 250);
 
-    --color-sidebar: oklch(0.16 0.01 250);
-    --color-sidebar-foreground: oklch(0.75 0.015 250);
-    --color-sidebar-accent: oklch(0.22 0.02 250);
-    --color-sidebar-accent-foreground: oklch(0.93 0.005 250);
-    --color-sidebar-border: oklch(0.25 0.015 250);
+  --color-sidebar: oklch(0.16 0.01 250);
+  --color-sidebar-foreground: oklch(0.75 0.015 250);
+  --color-sidebar-accent: oklch(0.22 0.02 250);
+  --color-sidebar-accent-foreground: oklch(0.93 0.005 250);
+  --color-sidebar-border: oklch(0.25 0.015 250);
 
-    --color-severity-low: oklch(0.65 0.17 145);
-    --color-severity-medium: oklch(0.75 0.18 75);
-    --color-severity-high: oklch(0.7 0.2 40);
-    --color-severity-critical: oklch(0.65 0.2 27);
-  }
+  --color-severity-low: oklch(0.65 0.17 145);
+  --color-severity-medium: oklch(0.75 0.18 75);
+  --color-severity-high: oklch(0.7 0.2 40);
+  --color-severity-critical: oklch(0.65 0.2 27);
 }
 
 /* ============================================================
