@@ -35,12 +35,18 @@ export function AppShell() {
         <TooltipProvider delayDuration={300}>
             <ShortcutsProvider>
                 <div className="flex h-screen w-screen flex-col overflow-hidden bg-background">
+                    <a
+                        href="#main-content"
+                        className="sr-only focus:not-sr-only focus:absolute focus:z-[9999] focus:top-2 focus:left-2 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary-foreground focus:shadow-lg"
+                    >
+                        Skip to main content
+                    </a>
                     <TitleBar />
                     <div className="flex flex-1 overflow-hidden">
                         <Sidebar />
                         <div className="flex flex-1 flex-col overflow-hidden">
                             <TopBar />
-                            <main className="flex-1 overflow-y-auto scrollable p-6">
+                            <main id="main-content" className="flex-1 overflow-y-auto scrollable p-6">
                                 <Outlet />
                             </main>
                         </div>

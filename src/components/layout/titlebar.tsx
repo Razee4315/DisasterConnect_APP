@@ -23,6 +23,7 @@ export function TitleBar() {
     return (
         <div
             data-tauri-drag-region
+            onDoubleClick={() => appWindow.toggleMaximize()}
             className="flex h-8 shrink-0 items-center justify-between bg-sidebar border-b border-sidebar-border select-none"
         >
             {/* Left: logo + app name */}

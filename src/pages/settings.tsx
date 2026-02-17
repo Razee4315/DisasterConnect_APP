@@ -11,6 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { User, Palette, Bell, Lock, Info, Loader2, Save, Sun, Moon, Monitor } from "lucide-react";
 import { toast } from "sonner";
+import { formatRole } from "@/lib/utils";
 import { AvatarUpload } from "@/components/avatar-upload";
 import { getVersion } from "@tauri-apps/api/app";
 
@@ -189,7 +190,7 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="text-xs text-muted-foreground">
-                            Role: <span className="font-medium capitalize">{profile?.role?.replace("_", " ")}</span>
+                            Role: <span className="font-medium">{profile?.role ? formatRole(profile.role) : "—"}</span>
                         </div>
                     </div>
                     <Separator />

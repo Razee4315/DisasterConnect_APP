@@ -44,6 +44,7 @@ import { toast } from "sonner";
 import type { SeverityLevel } from "@/types/enums";
 import { CommandPalette } from "@/components/command-palette";
 import { OfflineIndicator } from "@/components/offline-indicator";
+import { formatRole } from "@/lib/utils";
 
 export function TopBar() {
     const { profile, signOut } = useAuthStore();
@@ -51,6 +52,7 @@ export function TopBar() {
     const [sosOpen, setSOSOpen] = useState(false);
     const [sosMessage, setSOSMessage] = useState("");
     const [sosSeverity, setSOSSeverity] = useState<SeverityLevel>("critical");
+    const [sosConfirmed, setSOSConfirmed] = useState(false);
     const [cmdOpen, setCmdOpen] = useState(false);
     const createSOS = useCreateSOS();
 
@@ -80,6 +82,7 @@ export function TopBar() {
             setSOSOpen(false);
             setSOSMessage("");
             setSOSSeverity("critical");
+            setSOSConfirmed(false);
         } catch {
             toast.error("Failed to send SOS broadcast");
         }
@@ -156,8 +159,8 @@ export function TopBar() {
                                 <p className="text-xs text-muted-foreground truncate">
                                     {profile?.email}
                                 </p>
-                                <p className="text-[10px] text-muted-foreground capitalize mt-0.5">
-                                    {profile?.role?.replace("_", " ")}
+                                <p className="text-[10px] text-muted-foreground mt-0.5">
+                                    {profile?.role ? formatRole(profile.role) : ""}
                                 </p>
                             </div>
                         </div>
@@ -225,6 +228,17 @@ export function TopBar() {
                         <p className="text-xs text-muted-foreground">
                             Your location will be shared automatically with the broadcast.
                         </p>
+                        <label className="flex items-center gap-2 cursor-pointer select-none">
+                            <input
+                                type="checkbox"
+                                checked={sosConfirmed}
+                                onChange={(e) => setSOSConfirmed(e.target.checked)}
+                                className="h-4 w-4 rounded border-destructive text-destructive accent-destructive"
+                            />
+                            <span className="text-sm font-medium text-destructive">
+                                I confirm this is a real emergency
+                            </span>
+                        </label>
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setSOSOpen(false)}>
@@ -233,7 +247,7 @@ export function TopBar() {
                         <Button
                             variant="destructive"
                             onClick={handleSOS}
-                            disabled={createSOS.isPending}
+                            disabled={createSOS.isPending || !sosConfirmed}
                         >
                             {createSOS.isPending && (
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

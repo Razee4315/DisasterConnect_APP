@@ -32,6 +32,7 @@ import {
     PanelLeft,
 } from "lucide-react";
 import { AppLogo } from "@/components/app-logo";
+import { formatRole } from "@/lib/utils";
 
 const NAV_ITEMS = [
     { label: "Dashboard", icon: LayoutDashboard, href: "/dashboard" },
@@ -180,8 +181,8 @@ export function Sidebar() {
                             <p className="truncate text-sm font-medium text-sidebar-accent-foreground">
                                 {profile?.first_name} {profile?.last_name}
                             </p>
-                            <p className="truncate text-xs text-sidebar-foreground capitalize">
-                                {profile?.role?.replace("_", " ")}
+                            <p className="truncate text-xs text-sidebar-foreground">
+                                {profile?.role ? formatRole(profile.role) : ""}
                             </p>
                         </div>
                         <Tooltip>

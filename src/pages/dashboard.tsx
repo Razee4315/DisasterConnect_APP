@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Layers, MapPin, Package } from "lucide-react";
+import { formatRole } from "@/lib/utils";
 
 import { StatsGrid } from "@/components/dashboard/stats-grid";
 import { QuickActions } from "@/components/dashboard/quick-actions";
@@ -47,8 +48,8 @@ export default function DashboardPage() {
         <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
         <p className="text-muted-foreground">
           Welcome back, {profile?.first_name ?? "User"}.{" "}
-          <Badge variant="outline" className="ml-1 capitalize">
-            {profile?.role?.replace("_", " ") ?? "—"}
+          <Badge variant="outline" className="ml-1">
+            {profile?.role ? formatRole(profile.role) : "—"}
           </Badge>
         </p>
       </div>
