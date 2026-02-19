@@ -36,6 +36,7 @@ import {
   useDeleteIncident,
   type IncidentFilters,
 } from "@/hooks/use-incidents";
+import { useAuthStore } from "@/stores/auth-store";
 import type { Incident } from "@/types/database";
 import type { IncidentType, SeverityLevel, IncidentStatus } from "@/types/enums";
 import {
@@ -109,6 +110,7 @@ export default function IncidentsPage() {
   const [editingIncident, setEditingIncident] = useState<Incident | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Incident | null>(null);
 
+  const isAdmin = useAuthStore((s) => s.profile?.role === "administrator");
   const deleteMutation = useDeleteIncident();
 
   const filters: IncidentFilters = {
@@ -383,17 +385,19 @@ export default function IncidentsPage() {
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon-xs"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteTarget(inc);
-                            }}
-                            aria-label="Delete incident"
-                          >
-                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                          </Button>
+                          {isAdmin && (
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteTarget(inc);
+                              }}
+                              aria-label="Delete incident"
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

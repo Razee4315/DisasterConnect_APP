@@ -42,6 +42,7 @@ import {
   useIncidentUpdates,
   useAddIncidentUpdate,
 } from "@/hooks/use-incidents";
+import { useAuthStore } from "@/stores/auth-store";
 import {
   useIncidentResources,
   useReleaseResource,
@@ -83,6 +84,7 @@ export default function IncidentDetailPage() {
   const { data: incident, isLoading, error } = useIncident(id);
   const { data: updates, isLoading: updatesLoading } = useIncidentUpdates(id);
   const { data: assignedResources, isLoading: resourcesLoading } = useIncidentResources(id);
+  const isAdmin = useAuthStore((s) => s.profile?.role === "administrator");
   const updateMutation = useUpdateIncident();
   const deleteMutation = useDeleteIncident();
   const addUpdateMutation = useAddIncidentUpdate();
@@ -228,15 +230,17 @@ export default function IncidentDetailPage() {
               Resolve
             </Button>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1 text-destructive hover:text-destructive"
-            onClick={() => setDeleteDialogOpen(true)}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Delete
-          </Button>
+          {isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1 text-destructive hover:text-destructive"
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete
+            </Button>
+          )}
         </div>
       </div>
 

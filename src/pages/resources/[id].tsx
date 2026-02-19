@@ -30,6 +30,7 @@ import {
   useDeleteResource,
   useResourceAssignments,
 } from "@/hooks/use-resources";
+import { useAuthStore } from "@/stores/auth-store";
 import type { MapResource } from "@/hooks/use-dashboard";
 import {
   ArrowLeft,
@@ -55,6 +56,7 @@ export default function ResourceDetailPage() {
   const { data: resource, isLoading, error } = useResource(id);
   const { data: assignments, isLoading: assignmentsLoading } =
     useResourceAssignments(id);
+  const isAdmin = useAuthStore((s) => s.profile?.role === "administrator");
   const updateMutation = useUpdateResource();
   const deleteMutation = useDeleteResource();
 
@@ -186,15 +188,17 @@ export default function ResourceDetailPage() {
               ? "Complete Maintenance"
               : "Start Maintenance"}
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1 text-destructive hover:text-destructive"
-            onClick={() => setDeleteDialogOpen(true)}
-          >
-            <Trash2 className="h-3.5 w-3.5" />
-            Delete
-          </Button>
+          {isAdmin && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1 text-destructive hover:text-destructive"
+              onClick={() => setDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              Delete
+            </Button>
+          )}
         </div>
       </div>
 

@@ -42,6 +42,7 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { DataTablePagination } from "@/components/data-table-pagination";
+import { useAuthStore } from "@/stores/auth-store";
 
 function fileIcon(mime: string | null) {
     if (!mime) return <File className="h-5 w-5 text-muted-foreground" />;
@@ -70,6 +71,8 @@ export default function DocumentsPage() {
     const fileRef = useRef<HTMLInputElement>(null);
     const [uploadIncident, setUploadIncident] = useState("");
 
+    const userId = useAuthStore((s) => s.user?.id);
+    const isAdmin = useAuthStore((s) => s.profile?.role === "administrator");
     const { data: allDocuments = [], isLoading } = useDocuments(filters);
     const paginatedDocuments = useMemo(() => {
         const start = (page - 1) * pageSize;
@@ -250,15 +253,17 @@ export default function DocumentsPage() {
                                             >
                                                 <Download className="h-3.5 w-3.5" />
                                             </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                className="h-7 w-7 text-destructive"
-                                                onClick={() => setDeleteTarget({ id: d.id, filePath: d.file_path, name: d.name })}
-                                                aria-label="Delete document"
-                                            >
-                                                <Trash2 className="h-3.5 w-3.5" />
-                                            </Button>
+                                            {(isAdmin || d.uploaded_by === userId) && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-7 w-7 text-destructive"
+                                                    onClick={() => setDeleteTarget({ id: d.id, filePath: d.file_path, name: d.name })}
+                                                    aria-label="Delete document"
+                                                >
+                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                </Button>
+                                            )}
                                         </div>
                                     </TableCell>
                                 </TableRow>

@@ -36,6 +36,7 @@ import {
   useDeleteResource,
   type ResourceFilters,
 } from "@/hooks/use-resources";
+import { useAuthStore } from "@/stores/auth-store";
 import type { Resource } from "@/types/database";
 import type { ResourceType, ResourceStatus } from "@/types/enums";
 import {
@@ -92,6 +93,7 @@ export default function ResourcesPage() {
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Resource | null>(null);
 
+  const isAdmin = useAuthStore((s) => s.profile?.role === "administrator");
   const deleteMutation = useDeleteResource();
 
   const filters: ResourceFilters = {
@@ -351,16 +353,18 @@ export default function ResourcesPage() {
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon-xs"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteTarget(res);
-                            }}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                          </Button>
+                          {isAdmin && (
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteTarget(res);
+                              }}
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

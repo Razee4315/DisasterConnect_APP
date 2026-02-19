@@ -111,7 +111,7 @@ function TaskCard({
 }: {
     task: TaskWithProfiles;
     onEdit: (task: TaskWithProfiles) => void;
-    onDelete: (id: string) => void;
+    onDelete?: (id: string) => void;
     onStatusChange: (id: string, status: TaskStatus) => void;
     draggable?: boolean;
 }) {
@@ -175,14 +175,18 @@ function TaskCard({
                                     Cancel
                                 </DropdownMenuItem>
                             )}
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                onClick={() => onDelete(task.id)}
-                                className="text-destructive focus:text-destructive"
-                            >
-                                <Trash2 className="mr-2 h-3.5 w-3.5" />
-                                Delete
-                            </DropdownMenuItem>
+                            {onDelete && (
+                                <>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                        onClick={() => onDelete(task.id)}
+                                        className="text-destructive focus:text-destructive"
+                                    >
+                                        <Trash2 className="mr-2 h-3.5 w-3.5" />
+                                        Delete
+                                    </DropdownMenuItem>
+                                </>
+                            )}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
@@ -239,7 +243,7 @@ function KanbanBoard({
 }: {
     tasks: TaskWithProfiles[];
     onEdit: (task: TaskWithProfiles) => void;
-    onDelete: (id: string) => void;
+    onDelete?: (id: string) => void;
     onStatusChange: (id: string, status: TaskStatus) => void;
 }) {
     const [dragOver, setDragOver] = useState<TaskStatus | null>(null);
@@ -500,6 +504,7 @@ function TaskFormDialog({
 
 export default function TasksPage() {
     const userId = useAuthStore((s) => s.user?.id);
+    const isAdmin = useAuthStore((s) => s.profile?.role === "administrator");
     const [view, setView] = useState<"kanban" | "list">("kanban");
     const [formOpen, setFormOpen] = useState(false);
     const [editTask, setEditTask] = useState<TaskWithProfiles | null>(null);
@@ -655,7 +660,7 @@ export default function TasksPage() {
                     <KanbanBoard
                         tasks={tasks}
                         onEdit={handleEdit}
-                        onDelete={handleDelete}
+                        onDelete={isAdmin ? handleDelete : undefined}
                         onStatusChange={handleStatusChange}
                     />
                 ) : (
@@ -666,7 +671,7 @@ export default function TasksPage() {
                                 key={task.id}
                                 task={task}
                                 onEdit={handleEdit}
-                                onDelete={handleDelete}
+                                onDelete={isAdmin ? handleDelete : undefined}
                                 onStatusChange={handleStatusChange}
                             />
                         ))}

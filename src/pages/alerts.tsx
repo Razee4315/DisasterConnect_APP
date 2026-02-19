@@ -36,6 +36,7 @@ import {
   type AlertRow,
   type AlertFilters,
 } from "@/hooks/use-alerts";
+import { useAuthStore } from "@/stores/auth-store";
 import type { AlertType, SeverityLevel } from "@/types/enums";
 import {
   Plus,
@@ -94,6 +95,8 @@ export default function AlertsPage() {
   const [editingAlert, setEditingAlert] = useState<AlertRow | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AlertRow | null>(null);
 
+  const userId = useAuthStore((s) => s.user?.id);
+  const isAdmin = useAuthStore((s) => s.profile?.role === "administrator");
   const deleteMutation = useDeleteAlert();
   const toggleMutation = useToggleAlert();
 
@@ -449,17 +452,19 @@ export default function AlertsPage() {
                           >
                             <Pencil className="h-3.5 w-3.5" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon-xs"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteTarget(alert);
-                            }}
-                            aria-label="Delete alert"
-                          >
-                            <Trash2 className="h-3.5 w-3.5 text-destructive" />
-                          </Button>
+                          {(isAdmin || alert.created_by === userId) && (
+                            <Button
+                              variant="ghost"
+                              size="icon-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteTarget(alert);
+                              }}
+                              aria-label="Delete alert"
+                            >
+                              <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

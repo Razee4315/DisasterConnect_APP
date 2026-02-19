@@ -56,6 +56,7 @@ import { exportToCSV } from "@/lib/csv-export";
 import type { DonationType, DonationStatus } from "@/types/enums";
 import type { Donation } from "@/types/database";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
+import { useAuthStore } from "@/stores/auth-store";
 
 const DONATION_TYPES: DonationType[] = [
     "monetary", "medical_supplies", "food", "water", "clothing", "shelter_materials", "equipment", "other",
@@ -81,6 +82,8 @@ export default function DonationsPage() {
     const [editing, setEditing] = useState<(Donation & { profiles: { first_name: string; last_name: string } | null }) | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
 
+    const userId = useAuthStore((s) => s.user?.id);
+    const isAdmin = useAuthStore((s) => s.profile?.role === "administrator");
     const { data: donations = [], isLoading } = useDonations(filters);
     const { data: stats } = useDonationStats();
     const { data: incidents = [] } = useIncidents();
@@ -242,9 +245,11 @@ export default function DonationsPage() {
                                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEdit(d)} aria-label="Edit donation">
                                                 <Pencil className="h-3.5 w-3.5" />
                                             </Button>
-                                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ id: d.id, name: d.donor_name })} aria-label="Delete donation">
-                                                <Trash2 className="h-3.5 w-3.5" />
-                                            </Button>
+                                            {(isAdmin || d.created_by === userId) && (
+                                                <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => setDeleteTarget({ id: d.id, name: d.donor_name })} aria-label="Delete donation">
+                                                    <Trash2 className="h-3.5 w-3.5" />
+                                                </Button>
+                                            )}
                                         </div>
                                     </TableCell>
                                 </TableRow>
