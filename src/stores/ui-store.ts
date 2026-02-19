@@ -4,11 +4,8 @@ import { persist } from "zustand/middleware";
 type Theme = "light" | "dark" | "system";
 
 interface UIState {
-    sidebarCollapsed: boolean;
     theme: Theme;
 
-    toggleSidebar: () => void;
-    setSidebarCollapsed: (collapsed: boolean) => void;
     setTheme: (theme: Theme) => void;
 }
 
@@ -28,13 +25,8 @@ function applyThemeClass(theme: Theme) {
 export const useUIStore = create<UIState>()(
     persist(
         (set) => ({
-            sidebarCollapsed: false,
             theme: "system" as Theme,
 
-            toggleSidebar: () =>
-                set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
-            setSidebarCollapsed: (collapsed) =>
-                set({ sidebarCollapsed: collapsed }),
             setTheme: (theme) => {
                 applyThemeClass(theme);
                 set({ theme });
@@ -42,7 +34,7 @@ export const useUIStore = create<UIState>()(
         }),
         {
             name: "dc-ui",
-            partialize: (s) => ({ theme: s.theme, sidebarCollapsed: s.sidebarCollapsed }),
+            partialize: (s) => ({ theme: s.theme }),
         }
     )
 );
