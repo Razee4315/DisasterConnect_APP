@@ -352,6 +352,7 @@ export default function ResourceDetailPage() {
               </p>
             </div>
           ) : (
+            <div className="rounded-md border overflow-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -412,6 +413,7 @@ export default function ResourceDetailPage() {
                 })}
               </TableBody>
             </Table>
+            </div>
           )}
         </CardContent>
       </Card>

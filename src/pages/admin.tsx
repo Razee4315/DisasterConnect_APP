@@ -303,7 +303,7 @@ export default function AdminPage() {
                             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                         </div>
                     ) : (
-                        <div className="rounded-md border">
+                        <div className="rounded-md border overflow-auto">
                             <Table>
                                 <TableHeader>
                                     <TableRow>

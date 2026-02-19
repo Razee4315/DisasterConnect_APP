@@ -262,6 +262,7 @@ export default function ResourcesPage() {
               </p>
             </div>
           ) : (
+            <div className="rounded-md border overflow-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -343,6 +344,7 @@ export default function ResourcesPage() {
                 })}
               </TableBody>
             </Table>
+            </div>
           )}
 
           {totalPages > 1 && (

@@ -211,6 +211,7 @@ export default function AuditLogPage() {
                             )}
                         </div>
                     ) : (
+                        <div className="rounded-md border overflow-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -253,6 +254,7 @@ export default function AuditLogPage() {
                                 ))}
                             </TableBody>
                         </Table>
+                        </div>
                     )}
                 </CardContent>
 

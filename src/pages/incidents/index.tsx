@@ -294,6 +294,7 @@ export default function IncidentsPage() {
               </p>
             </div>
           ) : (
+            <div className="rounded-md border overflow-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -377,6 +378,7 @@ export default function IncidentsPage() {
                 })}
               </TableBody>
             </Table>
+            </div>
           )}
 
           {/* Pagination */}

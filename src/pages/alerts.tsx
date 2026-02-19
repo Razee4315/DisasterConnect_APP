@@ -335,6 +335,7 @@ export default function AlertsPage() {
               </p>
             </div>
           ) : (
+            <div className="rounded-md border overflow-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -442,6 +443,7 @@ export default function AlertsPage() {
                 })}
               </TableBody>
             </Table>
+            </div>
           )}
 
           {/* Pagination */}
