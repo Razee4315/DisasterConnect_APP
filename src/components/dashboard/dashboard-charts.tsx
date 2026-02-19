@@ -13,6 +13,14 @@ import {
 import type { SeverityCount, ResourceStatusCount } from "@/hooks/use-dashboard";
 import { BarChart3 } from "lucide-react";
 
+// ─── Theme-aware tick color ──────────────────────────────────────
+function useTickColor() {
+  if (typeof window === "undefined") return "#6b7280";
+  return document.documentElement.classList.contains("dark")
+    ? "#a1a1aa"
+    : "#6b7280";
+}
+
 // ─── Severity Colors ─────────────────────────────────────────────
 const SEVERITY_COLORS: Record<string, string> = {
   critical: "#dc2626",
@@ -135,6 +143,7 @@ interface ResourceChartProps {
 }
 
 export function ResourceStatusChart({ data, isLoading }: ResourceChartProps) {
+  const tickColor = useTickColor();
   const total = data?.reduce((sum, d) => sum + d.count, 0) ?? 0;
   const hasData = total > 0;
 
@@ -172,13 +181,13 @@ export function ResourceStatusChart({ data, isLoading }: ResourceChartProps) {
             <BarChart data={chartData} barSize={28}>
               <XAxis
                 dataKey="name"
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 11, fill: tickColor }}
                 tickLine={false}
                 axisLine={false}
               />
               <YAxis
                 allowDecimals={false}
-                tick={{ fontSize: 11 }}
+                tick={{ fontSize: 11, fill: tickColor }}
                 tickLine={false}
                 axisLine={false}
                 width={30}

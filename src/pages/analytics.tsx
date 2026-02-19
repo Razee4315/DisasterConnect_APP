@@ -30,6 +30,15 @@ import {
 const COLORS_SEV = ["#22c55e", "#eab308", "#f97316", "#ef4444"];
 const COLORS_PIE = ["#3b82f6", "#8b5cf6", "#06b6d4", "#f59e0b", "#ec4899", "#10b981", "#f43f5e", "#6366f1", "#14b8a6"];
 
+function useChartTheme() {
+    const isDark = typeof window !== "undefined" && document.documentElement.classList.contains("dark");
+    return {
+        tickColor: isDark ? "#a1a1aa" : "#6b7280",
+        gridColor: isDark ? "rgba(161,161,170,0.15)" : "rgba(107,114,128,0.2)",
+        legendColor: isDark ? "#a1a1aa" : "#6b7280",
+    };
+}
+
 export default function AnalyticsPage() {
     const { data, isLoading } = useAnalytics();
 
@@ -40,6 +49,8 @@ export default function AnalyticsPage() {
             </div>
         );
     }
+
+    const theme = useChartTheme();
 
     if (!data) return null;
 
@@ -85,14 +96,13 @@ export default function AnalyticsPage() {
                                         <stop offset="100%" stopColor="#3b82f6" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                                <CartesianGrid strokeDasharray="3 3" stroke={theme.gridColor} />
                                 <XAxis
                                     dataKey="date"
                                     tickFormatter={(v: string) => v.slice(5)}
-                                    tick={{ fontSize: 10 }}
-                                    className="fill-muted-foreground"
+                                    tick={{ fontSize: 10, fill: theme.tickColor }}
                                 />
-                                <YAxis tick={{ fontSize: 10 }} className="fill-muted-foreground" allowDecimals={false} />
+                                <YAxis tick={{ fontSize: 10, fill: theme.tickColor }} allowDecimals={false} />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: "var(--color-card)", color: "var(--color-card-foreground)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: 12 }}
                                     labelFormatter={(v: string) => v}
@@ -128,7 +138,7 @@ export default function AnalyticsPage() {
                                     <Tooltip
                                         contentStyle={{ backgroundColor: "var(--color-card)", color: "var(--color-card-foreground)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: 12 }}
                                     />
-                                    <Legend iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+                                    <Legend iconSize={8} wrapperStyle={{ fontSize: 11, color: theme.legendColor }} />
                                 </PieChart>
                             </ResponsiveContainer>
                         ) : (
@@ -148,9 +158,9 @@ export default function AnalyticsPage() {
                     <CardContent className="h-[220px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={data.incidentsByType} layout="vertical">
-                                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                                <XAxis type="number" tick={{ fontSize: 10 }} className="fill-muted-foreground" allowDecimals={false} />
-                                <YAxis dataKey="name" type="category" tick={{ fontSize: 10 }} width={120} className="fill-muted-foreground" />
+                                <CartesianGrid strokeDasharray="3 3" stroke={theme.gridColor} />
+                                <XAxis type="number" tick={{ fontSize: 10, fill: theme.tickColor }} allowDecimals={false} />
+                                <YAxis dataKey="name" type="category" tick={{ fontSize: 10, fill: theme.tickColor }} width={120} />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: "var(--color-card)", color: "var(--color-card-foreground)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: 12 }}
                                 />
@@ -168,13 +178,13 @@ export default function AnalyticsPage() {
                     <CardContent className="h-[220px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={data.resourceUtilization}>
-                                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                                <XAxis dataKey="name" tick={{ fontSize: 9 }} className="fill-muted-foreground" />
-                                <YAxis tick={{ fontSize: 10 }} className="fill-muted-foreground" allowDecimals={false} />
+                                <CartesianGrid strokeDasharray="3 3" stroke={theme.gridColor} />
+                                <XAxis dataKey="name" tick={{ fontSize: 9, fill: theme.tickColor }} />
+                                <YAxis tick={{ fontSize: 10, fill: theme.tickColor }} allowDecimals={false} />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: "var(--color-card)", color: "var(--color-card-foreground)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: 12 }}
                                 />
-                                <Legend iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+                                <Legend iconSize={8} wrapperStyle={{ fontSize: 11, color: theme.legendColor }} />
                                 <Bar dataKey="available" stackId="a" fill="#22c55e" radius={[0, 0, 0, 0]} />
                                 <Bar dataKey="assigned" stackId="a" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                             </BarChart>
@@ -193,13 +203,13 @@ export default function AnalyticsPage() {
                     <CardContent className="h-[220px]">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={data.taskVelocity}>
-                                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                                <XAxis dataKey="name" tick={{ fontSize: 10 }} className="fill-muted-foreground" />
-                                <YAxis tick={{ fontSize: 10 }} className="fill-muted-foreground" allowDecimals={false} />
+                                <CartesianGrid strokeDasharray="3 3" stroke={theme.gridColor} />
+                                <XAxis dataKey="name" tick={{ fontSize: 10, fill: theme.tickColor }} />
+                                <YAxis tick={{ fontSize: 10, fill: theme.tickColor }} allowDecimals={false} />
                                 <Tooltip
                                     contentStyle={{ backgroundColor: "var(--color-card)", color: "var(--color-card-foreground)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: 12 }}
                                 />
-                                <Legend iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+                                <Legend iconSize={8} wrapperStyle={{ fontSize: 11, color: theme.legendColor }} />
                                 <Bar dataKey="created" fill="#f59e0b" radius={[4, 4, 0, 0]} />
                                 <Bar dataKey="completed" fill="#22c55e" radius={[4, 4, 0, 0]} />
                             </BarChart>
@@ -232,7 +242,7 @@ export default function AnalyticsPage() {
                                     <Tooltip
                                         contentStyle={{ backgroundColor: "var(--color-card)", color: "var(--color-card-foreground)", border: "1px solid var(--color-border)", borderRadius: "8px", fontSize: 12 }}
                                     />
-                                    <Legend iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+                                    <Legend iconSize={8} wrapperStyle={{ fontSize: 11, color: theme.legendColor }} />
                                 </PieChart>
                             </ResponsiveContainer>
                         ) : (
