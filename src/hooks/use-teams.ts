@@ -145,6 +145,36 @@ export function useAddTeamMember() {
     });
 }
 
+// ─── Update Team Member Role ─────────────────────────────────────
+
+export function useUpdateTeamMemberRole() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({
+            teamId,
+            userId,
+            role,
+        }: {
+            teamId: string;
+            userId: string;
+            role: string;
+        }) => {
+            const { error } = await supabase
+                .from("team_members")
+                .update({ role })
+                .eq("team_id", teamId)
+                .eq("user_id", userId);
+
+            if (error) throw error;
+        },
+        onSuccess: (_, vars) => {
+            queryClient.invalidateQueries({ queryKey: ["teams", vars.teamId] });
+            queryClient.invalidateQueries({ queryKey: ["teams"] });
+        },
+    });
+}
+
 // ─── Remove Team Member ──────────────────────────────────────────
 
 export function useRemoveTeamMember() {

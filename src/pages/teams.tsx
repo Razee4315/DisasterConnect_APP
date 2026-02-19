@@ -5,6 +5,7 @@ import {
     useCreateTeam,
     useAddTeamMember,
     useRemoveTeamMember,
+    useUpdateTeamMemberRole,
     type TeamWithMembers,
     type TeamMemberWithProfile,
 } from "@/hooks/use-teams";
@@ -41,6 +42,8 @@ import {
     ArrowLeft,
     Loader2,
     Shield,
+    ChevronUp,
+    ChevronDown,
 } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -97,10 +100,12 @@ function TeamDetail({
     onBack: () => void;
 }) {
     const userId = useAuthStore((s) => s.user?.id);
+    const userRole = useAuthStore((s) => s.profile?.role);
     const { data: team, isLoading } = useTeam(teamId);
     const { data: allProfiles = [] } = useProfiles();
     const addMember = useAddTeamMember();
     const removeMember = useRemoveTeamMember();
+    const updateMemberRole = useUpdateTeamMemberRole();
     const [addOpen, setAddOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState("");
     const [memberRole, setMemberRole] = useState("member");
@@ -112,6 +117,12 @@ function TeamDetail({
             </div>
         );
     }
+
+    const isTeamLead = team.lead_id === userId;
+    const canManageMembers =
+        isTeamLead ||
+        userRole === "coordinator" ||
+        userRole === "administrator";
 
     const memberIds = new Set(team.members?.map((m) => m.user_id) ?? []);
     const availableProfiles = allProfiles.filter((p) => !memberIds.has(p.id));
@@ -141,6 +152,19 @@ function TeamDetail({
         }
     };
 
+    const handleRoleChange = async (memberId: string, newRole: string) => {
+        try {
+            await updateMemberRole.mutateAsync({
+                teamId,
+                userId: memberId,
+                role: newRole,
+            });
+            toast.success(newRole === "lead" ? "Promoted to lead" : "Demoted to member");
+        } catch {
+            toast.error("Failed to update member role");
+        }
+    };
+
     return (
         <div className="space-y-4">
             {/* Header */}
@@ -159,10 +183,12 @@ function TeamDetail({
                         <p className="text-sm text-muted-foreground">{team.description}</p>
                     )}
                 </div>
-                <Button size="sm" onClick={() => setAddOpen(true)}>
-                    <UserPlus className="h-4 w-4 mr-1.5" />
-                    Add Member
-                </Button>
+                {canManageMembers && (
+                    <Button size="sm" onClick={() => setAddOpen(true)}>
+                        <UserPlus className="h-4 w-4 mr-1.5" />
+                        Add Member
+                    </Button>
+                )}
             </div>
 
             {/* Members List */}
@@ -212,15 +238,39 @@ function TeamDetail({
                                     {m.profile?.role?.replace("_", " ") ?? m.role}
                                 </p>
                             </div>
-                            {!isSelf && (
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                                    onClick={() => handleRemove(m.user_id)}
-                                >
-                                    <UserMinus className="h-3.5 w-3.5" />
-                                </Button>
+                            {!isSelf && canManageMembers && (
+                                <div className="flex gap-0.5">
+                                    {isLead ? (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                                            onClick={() => handleRoleChange(m.user_id, "member")}
+                                            title="Demote to member"
+                                        >
+                                            <ChevronDown className="h-3.5 w-3.5" />
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-7 w-7 text-muted-foreground hover:text-amber-600"
+                                            onClick={() => handleRoleChange(m.user_id, "lead")}
+                                            title="Promote to lead"
+                                        >
+                                            <ChevronUp className="h-3.5 w-3.5" />
+                                        </Button>
+                                    )}
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                        onClick={() => handleRemove(m.user_id)}
+                                        title="Remove member"
+                                    >
+                                        <UserMinus className="h-3.5 w-3.5" />
+                                    </Button>
+                                </div>
                             )}
                         </div>
                     );
