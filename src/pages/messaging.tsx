@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
 import {
     useChannels,
@@ -7,6 +7,7 @@ import {
     useCreateChannel,
     useJoinChannel,
     useChannelRealtime,
+    useSearchMessages,
     type MessageWithSender,
 } from "@/hooks/use-messages";
 import { useAuthStore } from "@/stores/auth-store";
@@ -15,6 +16,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
     Dialog,
     DialogContent,
@@ -39,6 +47,14 @@ import {
     AlertTriangle,
     Radio,
     Loader2,
+    Paperclip,
+    Image as ImageIcon,
+    FileText,
+    X,
+    Download,
+    ArrowDown,
+    SearchX,
+    File,
 } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { toast } from "sonner";
@@ -60,6 +76,54 @@ function formatMsgTime(dateStr: string): string {
     if (isToday(d)) return format(d, "h:mm a");
     if (isYesterday(d)) return `Yesterday ${format(d, "h:mm a")}`;
     return format(d, "MMM d, h:mm a");
+}
+
+function formatDateSeparator(dateStr: string): string {
+    const d = new Date(dateStr);
+    if (isToday(d)) return "Today";
+    if (isYesterday(d)) return "Yesterday";
+    return format(d, "EEEE, MMMM d, yyyy");
+}
+
+// ─── File Type Helpers ───────────────────────────────────────────
+
+function isImageFile(name: string): boolean {
+    return /\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i.test(name);
+}
+
+function getFileIcon(name: string) {
+    if (isImageFile(name)) return <ImageIcon className="h-4 w-4" />;
+    if (/\.pdf$/i.test(name)) return <FileText className="h-4 w-4" />;
+    return <File className="h-4 w-4" />;
+}
+
+function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1048576).toFixed(1)} MB`;
+}
+
+// ─── URL Detection ───────────────────────────────────────────────
+
+function renderMessageContent(content: string) {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = content.split(urlRegex);
+    return parts.map((part, i) =>
+        urlRegex.test(part) ? (
+            <a
+                key={i}
+                href={part}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary underline underline-offset-2 hover:text-primary/80 break-all"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {part}
+            </a>
+        ) : (
+            <span key={i}>{part}</span>
+        )
+    );
 }
 
 // ─── Channel List ────────────────────────────────────────────────
@@ -96,14 +160,26 @@ function ChannelList({
         broadcast: "Broadcasts",
     };
 
+    const typeOrder = ["incident", "team", "direct", "broadcast"];
+
     return (
-        <div className="flex flex-col h-full border-r border-border w-72 shrink-0">
+        <div className="flex flex-col h-full border-r border-border w-72 shrink-0 bg-card/50">
             {/* Header */}
             <div className="flex items-center justify-between p-3 border-b border-border">
-                <h3 className="text-sm font-semibold">Channels</h3>
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onCreateNew} aria-label="Create new channel">
-                    <Plus className="h-4 w-4" />
-                </Button>
+                <div className="flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4 text-primary" />
+                    <h3 className="text-sm font-semibold">Messages</h3>
+                </div>
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onCreateNew} aria-label="Create new channel">
+                                <Plus className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>New Channel</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
             </div>
 
             {/* Search */}
@@ -112,7 +188,7 @@ function ChannelList({
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                     <Input
                         placeholder="Search channels..."
-                        className="pl-8 h-7 text-xs"
+                        className="pl-8 h-8 text-xs"
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         data-selectable
@@ -132,31 +208,114 @@ function ChannelList({
                         <p>No channels found</p>
                     </div>
                 ) : (
-                    Object.entries(grouped).map(([type, chs]) => (
-                        <div key={type}>
-                            <p className="text-[10px] font-semibold uppercase text-muted-foreground px-3 py-1.5 mt-2">
-                                {typeLabels[type] ?? type}
-                            </p>
-                            {chs.map((ch) => {
-                                const Icon = channelTypeIcon[ch.type] ?? Hash;
-                                const isActive = ch.id === activeId;
-                                return (
-                                    <button
-                                        key={ch.id}
-                                        onClick={() => onSelect(ch.id)}
-                                        className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted/50 transition-colors ${isActive ? "bg-muted text-foreground" : "text-muted-foreground"
-                                            }`}
-                                    >
-                                        <Icon className="h-3.5 w-3.5 shrink-0" />
-                                        <span className="flex-1 truncate">{ch.name}</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    ))
+                    typeOrder
+                        .filter((t) => grouped[t]?.length)
+                        .map((type) => (
+                            <div key={type}>
+                                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-3 py-1.5 mt-2">
+                                    {typeLabels[type] ?? type}
+                                </p>
+                                {grouped[type].map((ch) => {
+                                    const Icon = channelTypeIcon[ch.type] ?? Hash;
+                                    const isActive = ch.id === activeId;
+                                    return (
+                                        <button
+                                            key={ch.id}
+                                            onClick={() => onSelect(ch.id)}
+                                            className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${isActive
+                                                ? "bg-primary/10 text-primary font-medium border-r-2 border-primary"
+                                                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                                                }`}
+                                        >
+                                            <Icon className="h-3.5 w-3.5 shrink-0" />
+                                            <span className="flex-1 truncate">{ch.name}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        ))
                 )}
             </ScrollArea>
         </div>
+    );
+}
+
+// ─── Attachment Preview (before sending) ─────────────────────────
+
+function AttachmentPreview({
+    file,
+    onRemove,
+}: {
+    file: File;
+    onRemove: () => void;
+}) {
+    const [preview, setPreview] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (file.type.startsWith("image/")) {
+            const url = URL.createObjectURL(file);
+            setPreview(url);
+            return () => URL.revokeObjectURL(url);
+        }
+    }, [file]);
+
+    return (
+        <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 p-2 max-w-xs">
+            {preview ? (
+                <img src={preview} alt={file.name} className="h-10 w-10 rounded object-cover shrink-0" />
+            ) : (
+                <div className="h-10 w-10 rounded bg-muted flex items-center justify-center shrink-0">
+                    {getFileIcon(file.name)}
+                </div>
+            )}
+            <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium truncate">{file.name}</p>
+                <p className="text-[10px] text-muted-foreground">{formatFileSize(file.size)}</p>
+            </div>
+            <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={onRemove}>
+                <X className="h-3 w-3" />
+            </Button>
+        </div>
+    );
+}
+
+// ─── Message Attachment Display ──────────────────────────────────
+
+function MessageAttachment({
+    url,
+    name,
+}: {
+    url: string;
+    name: string;
+}) {
+    if (isImageFile(name)) {
+        return (
+            <a href={url} target="_blank" rel="noopener noreferrer" className="block mt-1.5">
+                <img
+                    src={url}
+                    alt={name}
+                    className="max-w-[280px] max-h-[200px] rounded-lg object-cover border border-border cursor-pointer hover:opacity-90 transition-opacity"
+                    loading="lazy"
+                />
+            </a>
+        );
+    }
+
+    return (
+        <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 mt-1.5 rounded-lg border border-border bg-muted/50 p-2 max-w-[280px] hover:bg-muted transition-colors"
+        >
+            <div className="h-8 w-8 rounded bg-primary/10 flex items-center justify-center shrink-0">
+                {getFileIcon(name)}
+            </div>
+            <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium truncate">{name}</p>
+            </div>
+            <Download className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+        </a>
     );
 }
 
@@ -176,7 +335,18 @@ function MessageThread({
     const sendMessage = useSendMessage();
     const joinChannel = useJoinChannel();
     const [input, setInput] = useState("");
+    const [pendingFile, setPendingFile] = useState<File | null>(null);
+    const [showSearch, setShowSearch] = useState(false);
+    const [searchQuery, setSearchQuery] = useState("");
+    const [showScrollBtn, setShowScrollBtn] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const { data: searchResults = [] } = useSearchMessages(
+        showSearch ? channelId : undefined,
+        searchQuery
+    );
 
     // Auto-join non-DM channels so user can send messages
     useEffect(() => {
@@ -190,20 +360,52 @@ function MessageThread({
 
     // Auto-scroll on new messages
     useEffect(() => {
+        scrollToBottom();
+    }, [messages.length]);
+
+    // Reset input when switching channels
+    useEffect(() => {
+        setInput("");
+        setPendingFile(null);
+        setShowSearch(false);
+        setSearchQuery("");
+    }, [channelId]);
+
+    const scrollToBottom = useCallback(() => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
-    }, [messages.length]);
+    }, []);
+
+    const handleScroll = useCallback(() => {
+        if (!scrollRef.current) return;
+        const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+        setShowScrollBtn(scrollHeight - scrollTop - clientHeight > 100);
+    }, []);
 
     const handleSend = async () => {
         const text = input.trim();
-        if (!text) return;
+        if (!text && !pendingFile) return;
+
+        const fileToSend = pendingFile;
         setInput("");
+        setPendingFile(null);
+
+        // Reset textarea height
+        if (textareaRef.current) {
+            textareaRef.current.style.height = "auto";
+        }
+
         try {
-            await sendMessage.mutateAsync({ channelId, content: text });
+            await sendMessage.mutateAsync({
+                channelId,
+                content: text,
+                file: fileToSend ?? undefined,
+            });
         } catch {
             toast.error("Failed to send message");
             setInput(text);
+            if (fileToSend) setPendingFile(fileToSend);
         }
     };
 
@@ -214,28 +416,160 @@ function MessageThread({
         }
     };
 
+    const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            if (file.size > 50 * 1024 * 1024) {
+                toast.error("File size must be under 50MB");
+                return;
+            }
+            setPendingFile(file);
+        }
+        e.target.value = "";
+    };
+
+    const handlePaste = (e: React.ClipboardEvent) => {
+        const items = e.clipboardData.items;
+        for (const item of items) {
+            if (item.type.startsWith("image/")) {
+                const file = item.getAsFile();
+                if (file) {
+                    e.preventDefault();
+                    setPendingFile(file);
+                    return;
+                }
+            }
+        }
+    };
+
+    // Group messages by date for separators
+    const messagesWithSeparators: Array<
+        { type: "separator"; date: string } | { type: "message"; msg: MessageWithSender }
+    > = [];
+    let lastDate = "";
+    for (const msg of messages) {
+        const msgDate = new Date(msg.created_at);
+        const dateKey = format(msgDate, "yyyy-MM-dd");
+        if (dateKey !== lastDate) {
+            messagesWithSeparators.push({ type: "separator", date: msg.created_at });
+            lastDate = dateKey;
+        }
+        messagesWithSeparators.push({ type: "message", msg });
+    }
+
+    const Icon = channelTypeIcon[channelType as ChannelType] ?? Hash;
+
     return (
         <div className="flex flex-col flex-1 min-w-0">
             {/* Thread Header */}
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-border">
-                <Hash className="h-4 w-4 text-muted-foreground" />
-                <h3 className="text-sm font-semibold">{channelName}</h3>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-card/50">
+                <div className="flex items-center gap-2">
+                    <Icon className="h-4 w-4 text-muted-foreground" />
+                    <h3 className="text-sm font-semibold">{channelName}</h3>
+                    <Badge variant="outline" className="text-[10px] capitalize">{channelType}</Badge>
+                </div>
+                <div className="flex items-center gap-1">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant={showSearch ? "secondary" : "ghost"}
+                                    size="icon"
+                                    className="h-7 w-7"
+                                    onClick={() => {
+                                        setShowSearch(!showSearch);
+                                        setSearchQuery("");
+                                    }}
+                                >
+                                    <Search className="h-3.5 w-3.5" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Search Messages</TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
             </div>
 
+            {/* Search Bar */}
+            {showSearch && (
+                <div className="flex items-center gap-2 px-4 py-2 border-b border-border bg-muted/30">
+                    <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                    <Input
+                        placeholder="Search messages in this channel..."
+                        className="h-7 text-xs border-0 bg-transparent focus-visible:ring-0 shadow-none"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        autoFocus
+                        data-selectable
+                    />
+                    <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={() => { setShowSearch(false); setSearchQuery(""); }}>
+                        <X className="h-3 w-3" />
+                    </Button>
+                </div>
+            )}
+
+            {/* Search Results */}
+            {showSearch && searchQuery.length >= 2 && (
+                <div className="border-b border-border bg-muted/20 max-h-[200px] overflow-y-auto">
+                    {searchResults.length === 0 ? (
+                        <div className="flex items-center justify-center gap-2 py-4 text-muted-foreground">
+                            <SearchX className="h-4 w-4" />
+                            <span className="text-xs">No messages found</span>
+                        </div>
+                    ) : (
+                        <div className="p-2 space-y-1">
+                            <p className="text-[10px] text-muted-foreground px-2">{searchResults.length} result{searchResults.length !== 1 ? "s" : ""}</p>
+                            {searchResults.map((msg) => (
+                                <div key={msg.id} className="rounded-md p-2 hover:bg-muted/50 transition-colors">
+                                    <div className="flex items-baseline gap-2">
+                                        <span className="text-xs font-medium">
+                                            {msg.sender ? `${msg.sender.first_name} ${msg.sender.last_name}` : "Unknown"}
+                                        </span>
+                                        <span className="text-[10px] text-muted-foreground">
+                                            {formatMsgTime(msg.created_at)}
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{msg.content}</p>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Messages */}
-            <div ref={scrollRef} className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto p-4 space-y-1 scrollable relative"
+                onScroll={handleScroll}
+            >
                 {isLoading ? (
                     <div className="flex items-center justify-center h-full">
                         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                     </div>
                 ) : messages.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                        <MessageSquare className="h-10 w-10 mb-2 opacity-40" />
-                        <p className="text-sm">No messages yet</p>
-                        <p className="text-xs">Start the conversation!</p>
+                        <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-3">
+                            <MessageSquare className="h-8 w-8 opacity-40" />
+                        </div>
+                        <p className="text-sm font-medium text-foreground">No messages yet</p>
+                        <p className="text-xs mt-1">Start the conversation!</p>
                     </div>
                 ) : (
-                    messages.map((msg: MessageWithSender) => {
+                    messagesWithSeparators.map((item, idx) => {
+                        if (item.type === "separator") {
+                            return (
+                                <div key={`sep-${item.date}`} className="flex items-center gap-3 py-3">
+                                    <div className="flex-1 h-px bg-border" />
+                                    <span className="text-[10px] font-medium text-muted-foreground px-2">
+                                        {formatDateSeparator(item.date)}
+                                    </span>
+                                    <div className="flex-1 h-px bg-border" />
+                                </div>
+                            );
+                        }
+
+                        const msg = item.msg;
                         const isOwn = msg.sender_id === userId;
                         const senderName = msg.sender
                             ? `${msg.sender.first_name} ${msg.sender.last_name}`
@@ -244,43 +578,149 @@ function MessageThread({
                             ? `${msg.sender.first_name[0]}${msg.sender.last_name[0]}`.toUpperCase()
                             : "?";
 
+                        // Check if previous message is from same sender (for grouping)
+                        const prevItem = messagesWithSeparators[idx - 1];
+                        const showAvatar = !prevItem ||
+                            prevItem.type === "separator" ||
+                            (prevItem.type === "message" && prevItem.msg.sender_id !== msg.sender_id);
+
                         return (
                             <div
                                 key={msg.id}
-                                className={`flex items-start gap-2.5 ${isOwn ? "flex-row-reverse" : ""}`}
+                                className={`flex items-start gap-2.5 ${isOwn ? "flex-row-reverse" : ""} ${showAvatar ? "mt-3" : "mt-0.5"}`}
                             >
-                                <Avatar className="h-7 w-7 shrink-0">
-                                    <AvatarFallback className="text-[10px] bg-muted">
-                                        {initials}
-                                    </AvatarFallback>
-                                </Avatar>
+                                {showAvatar ? (
+                                    <Avatar className="h-7 w-7 shrink-0">
+                                        <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                                            {initials}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                ) : (
+                                    <div className="w-7 shrink-0" />
+                                )}
                                 <div className={`max-w-[70%] ${isOwn ? "text-right" : ""}`}>
-                                    <div className="flex items-baseline gap-2">
-                                        <span className="text-xs font-medium">{senderName}</span>
-                                        <span className="text-[10px] text-muted-foreground">
-                                            {formatMsgTime(msg.created_at)}
-                                        </span>
-                                    </div>
+                                    {showAvatar && (
+                                        <div className={`flex items-baseline gap-2 mb-0.5 ${isOwn ? "flex-row-reverse" : ""}`}>
+                                            <span className="text-xs font-medium">{senderName}</span>
+                                            <span className="text-[10px] text-muted-foreground">
+                                                {formatMsgTime(msg.created_at)}
+                                            </span>
+                                        </div>
+                                    )}
                                     <div
-                                        className={`mt-0.5 rounded-lg px-3 py-1.5 text-sm inline-block ${isOwn
-                                            ? "bg-primary text-primary-foreground"
-                                            : "bg-muted"
+                                        className={`rounded-2xl px-3 py-2 text-sm inline-block ${isOwn
+                                            ? "bg-primary text-primary-foreground rounded-tr-sm"
+                                            : "bg-muted rounded-tl-sm"
                                             }`}
+                                        data-selectable
                                     >
-                                        {msg.content}
+                                        {msg.content && (
+                                            <p className="whitespace-pre-wrap break-words leading-relaxed">
+                                                {renderMessageContent(msg.content)}
+                                            </p>
+                                        )}
                                     </div>
+                                    {/* Attachment */}
+                                    {msg.attachment_url && msg.attachment_name && (
+                                        <MessageAttachment url={msg.attachment_url} name={msg.attachment_name} />
+                                    )}
+                                    {/* Timestamp for grouped messages */}
+                                    {!showAvatar && (
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <span className="sr-only">{formatMsgTime(msg.created_at)}</span>
+                                                </TooltipTrigger>
+                                                <TooltipContent side={isOwn ? "left" : "right"}>
+                                                    {formatMsgTime(msg.created_at)}
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
+                                    )}
                                 </div>
                             </div>
                         );
                     })
                 )}
+
+                {/* Scroll to bottom button */}
+                {showScrollBtn && (
+                    <button
+                        onClick={scrollToBottom}
+                        className="sticky bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-xs text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors"
+                    >
+                        <ArrowDown className="h-3 w-3" />
+                        New messages
+                    </button>
+                )}
             </div>
 
-            {/* Input */}
-            <div className="flex items-end gap-2 p-3 border-t border-border">
+            {/* Attachment Preview */}
+            {pendingFile && (
+                <div className="px-3 pt-2">
+                    <AttachmentPreview file={pendingFile} onRemove={() => setPendingFile(null)} />
+                </div>
+            )}
+
+            {/* Input Area */}
+            <div className="flex items-end gap-2 p-3 border-t border-border bg-card/50">
+                <input
+                    ref={fileInputRef}
+                    type="file"
+                    className="hidden"
+                    onChange={handleFileSelect}
+                    accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip,.rar"
+                />
+
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 shrink-0"
+                                onClick={() => fileInputRef.current?.click()}
+                                disabled={sendMessage.isPending}
+                            >
+                                <Paperclip className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Attach File</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+
+                <TooltipProvider>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-9 w-9 shrink-0"
+                                onClick={() => {
+                                    if (fileInputRef.current) {
+                                        fileInputRef.current.accept = "image/*";
+                                        fileInputRef.current.click();
+                                        // Reset accept after click
+                                        setTimeout(() => {
+                                            if (fileInputRef.current) {
+                                                fileInputRef.current.accept = "image/*,.pdf,.doc,.docx,.xls,.xlsx,.csv,.txt,.zip,.rar";
+                                            }
+                                        }, 100);
+                                    }
+                                }}
+                                disabled={sendMessage.isPending}
+                            >
+                                <ImageIcon className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Send Image</TooltipContent>
+                    </Tooltip>
+                </TooltipProvider>
+
                 <textarea
-                    placeholder={`Message #${channelName}`}
-                    className="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    ref={textareaRef}
+                    placeholder={`Message #${channelName}...`}
+                    className="flex-1 resize-none rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[36px] max-h-[150px]"
                     rows={1}
                     value={input}
                     onChange={(e) => {
@@ -289,16 +729,22 @@ function MessageThread({
                         e.target.style.height = `${Math.min(e.target.scrollHeight, 150)}px`;
                     }}
                     onKeyDown={handleKeyDown}
+                    onPaste={handlePaste}
                     data-selectable
                 />
+
                 <Button
                     size="icon"
-                    className="shrink-0"
+                    className="shrink-0 h-9 w-9 rounded-full"
                     onClick={handleSend}
-                    disabled={!input.trim() || sendMessage.isPending}
+                    disabled={(!input.trim() && !pendingFile) || sendMessage.isPending}
                     aria-label="Send message"
                 >
-                    <Send className="h-4 w-4" />
+                    {sendMessage.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                        <Send className="h-4 w-4" />
+                    )}
                 </Button>
             </div>
         </div>
@@ -467,19 +913,22 @@ export default function MessagingPage() {
 
             {activeChannel ? (
                 <MessageThread
+                    key={activeChannel.id}
                     channelId={activeChannel.id}
                     channelName={activeChannel.name}
                     channelType={activeChannel.type}
                 />
             ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
-                    <MessageSquare className="h-12 w-12 mb-3 opacity-40" />
-                    <p className="text-lg font-medium">Select a channel</p>
+                    <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center mb-4">
+                        <MessageSquare className="h-10 w-10 opacity-40" />
+                    </div>
+                    <p className="text-lg font-medium text-foreground">Select a channel</p>
                     <p className="text-sm mt-1">
                         Pick a channel from the sidebar or create a new one
                     </p>
-                    <Button className="mt-4" onClick={() => setCreateOpen(true)}>
-                        <Plus className="h-4 w-4 mr-1.5" />
+                    <Button className="mt-4 gap-1.5" onClick={() => setCreateOpen(true)}>
+                        <Plus className="h-4 w-4" />
                         Create Channel
                     </Button>
                 </div>

@@ -102,7 +102,7 @@ export function useMessages(channelId: string | undefined) {
     });
 }
 
-// ─── Send Message ────────────────────────────────────────────────
+// ─── Send Message (with optional file attachment) ───────────────
 
 export function useSendMessage() {
     const queryClient = useQueryClient();
@@ -112,16 +112,42 @@ export function useSendMessage() {
         mutationFn: async ({
             channelId,
             content,
+            file,
         }: {
             channelId: string;
             content: string;
+            file?: File;
         }) => {
+            let attachment_url: string | null = null;
+            let attachment_name: string | null = null;
+
+            // Upload file to Supabase Storage if provided
+            if (file) {
+                const timestamp = Date.now();
+                const filePath = `chat/${userId}/${timestamp}_${file.name}`;
+                const { error: uploadError } = await supabase.storage
+                    .from("documents")
+                    .upload(filePath, file, { cacheControl: "3600", upsert: false });
+                if (uploadError) throw uploadError;
+
+                // Get public/signed URL
+                const { data: urlData, error: urlError } = await supabase.storage
+                    .from("documents")
+                    .createSignedUrl(filePath, 60 * 60 * 24 * 365); // 1 year
+                if (urlError) throw urlError;
+
+                attachment_url = urlData.signedUrl;
+                attachment_name = file.name;
+            }
+
             const { data, error } = await supabase
                 .from("messages")
                 .insert({
                     channel_id: channelId,
                     sender_id: userId!,
-                    content,
+                    content: content || (file ? `Sent a file: ${file.name}` : ""),
+                    attachment_url,
+                    attachment_name,
                 })
                 .select()
                 .single();
@@ -135,6 +161,29 @@ export function useSendMessage() {
             });
             queryClient.invalidateQueries({ queryKey: ["channels"] });
         },
+    });
+}
+
+// ─── Search Messages ────────────────────────────────────────────
+
+export function useSearchMessages(channelId: string | undefined, query: string) {
+    return useQuery({
+        queryKey: ["messages-search", channelId, query],
+        queryFn: async (): Promise<MessageWithSender[]> => {
+            const { data, error } = await supabase
+                .from("messages")
+                .select(
+                    "*, sender:profiles!messages_sender_id_fkey(first_name, last_name)"
+                )
+                .eq("channel_id", channelId!)
+                .ilike("content", `%${query.replace(/%/g, "\\%").replace(/_/g, "\\_")}%`)
+                .order("created_at", { ascending: false })
+                .limit(50);
+
+            if (error) throw error;
+            return (data ?? []) as MessageWithSender[];
+        },
+        enabled: !!channelId && query.length >= 2,
     });
 }
 
