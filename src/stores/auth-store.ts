@@ -18,7 +18,6 @@ interface AuthState {
         firstName: string;
         lastName: string;
         organization?: string;
-        role?: string;
     }) => Promise<{ error: string | null }>;
     signIn: (
         email: string,
@@ -67,7 +66,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         });
     },
 
-    signUp: async ({ email, password, firstName, lastName, organization, role }) => {
+    signUp: async ({ email, password, firstName, lastName, organization }) => {
         set({ isLoading: true });
         const { error } = await supabase.auth.signUp({
             email,
@@ -77,7 +76,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
                     first_name: firstName,
                     last_name: lastName,
                     organization: organization || "",
-                    role: role || "volunteer",
+                    // Role is ALWAYS assigned server-side as 'volunteer'
+                    // Never pass role from the client to prevent privilege escalation
                 },
                 emailRedirectTo: "disasterconnect://auth/callback",
             },
