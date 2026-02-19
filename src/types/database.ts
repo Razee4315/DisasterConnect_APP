@@ -165,6 +165,7 @@ export interface Message {
     content: string;
     attachment_url: string | null;
     attachment_name: string | null;
+    edited_at: string | null;
     created_at: string;
 }
 

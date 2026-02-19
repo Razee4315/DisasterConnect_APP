@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
     useDonations,
     useDonationStats,
@@ -48,8 +48,11 @@ import {
     Clock,
     CheckCircle2,
     Truck,
+    Download,
 } from "lucide-react";
 import { format } from "date-fns";
+import { DataTablePagination } from "@/components/data-table-pagination";
+import { exportToCSV } from "@/lib/csv-export";
 import type { DonationType, DonationStatus } from "@/types/enums";
 import type { Donation } from "@/types/database";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
@@ -72,6 +75,8 @@ function formatLabel(s: string): string {
 
 export default function DonationsPage() {
     const [filters, setFilters] = useState<DonationFilters>({});
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(25);
     const [dialogOpen, setDialogOpen] = useState(false);
     const [editing, setEditing] = useState<(Donation & { profiles: { first_name: string; last_name: string } | null }) | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
@@ -82,6 +87,11 @@ export default function DonationsPage() {
     const createMut = useCreateDonation();
     const updateMut = useUpdateDonation();
     const deleteMut = useDeleteDonation();
+
+    const paginatedDonations = useMemo(() => {
+        const start = (page - 1) * pageSize;
+        return donations.slice(start, start + pageSize);
+    }, [donations, page, pageSize]);
 
     const openCreate = () => { setEditing(null); setDialogOpen(true); };
     const openEdit = (d: typeof donations[0]) => { setEditing(d); setDialogOpen(true); };
@@ -102,10 +112,36 @@ export default function DonationsPage() {
                     <h1 className="text-2xl font-bold tracking-tight">Donations</h1>
                     <p className="text-sm text-muted-foreground">Track monetary and physical donations</p>
                 </div>
-                <Button className="gap-1.5" onClick={openCreate}>
-                    <Plus className="h-4 w-4" />
-                    Record Donation
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button
+                        variant="outline"
+                        size="sm"
+                        className="gap-1.5"
+                        disabled={!donations.length}
+                        onClick={() =>
+                            exportToCSV(
+                                donations,
+                                [
+                                    { key: "donor_name", label: "Donor" },
+                                    { key: "type", label: "Type" },
+                                    { key: "amount", label: "Amount" },
+                                    { key: "quantity", label: "Quantity" },
+                                    { key: "unit", label: "Unit" },
+                                    { key: "status", label: "Status" },
+                                    { key: "created_at", label: "Date" },
+                                ],
+                                "donations"
+                            )
+                        }
+                    >
+                        <Download className="h-4 w-4" />
+                        Export CSV
+                    </Button>
+                    <Button className="gap-1.5" onClick={openCreate}>
+                        <Plus className="h-4 w-4" />
+                        Record Donation
+                    </Button>
+                </div>
             </div>
 
             {/* Stats */}
@@ -177,7 +213,7 @@ export default function DonationsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {donations.map((d) => (
+                            {paginatedDonations.map((d) => (
                                 <TableRow key={d.id}>
                                     <TableCell>
                                         <div>
@@ -215,6 +251,22 @@ export default function DonationsPage() {
                             ))}
                         </TableBody>
                     </Table>
+                </div>
+            )}
+
+            {/* Pagination */}
+            {donations.length > 0 && (
+                <div className="px-4 py-2">
+                    <DataTablePagination
+                        page={page}
+                        pageSize={pageSize}
+                        totalCount={donations.length}
+                        onPageChange={setPage}
+                        onPageSizeChange={(size) => {
+                            setPageSize(size);
+                            setPage(1);
+                        }}
+                    />
                 </div>
             )}
 

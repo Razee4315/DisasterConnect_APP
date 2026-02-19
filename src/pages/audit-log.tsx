@@ -23,14 +23,13 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
     Search,
-    ChevronLeft,
-    ChevronRight,
     ScrollText,
     Loader2,
     X,
 } from "lucide-react";
+import { DataTablePagination } from "@/components/data-table-pagination";
 
-const PAGE_SIZE = 25;
+const DEFAULT_PAGE_SIZE = 25;
 
 // ─── Action badge colors ────────────────────────────────────────
 
@@ -58,6 +57,7 @@ export default function AuditLogPage() {
     const [dateFrom, setDateFrom] = useState("");
     const [dateTo, setDateTo] = useState("");
     const [page, setPage] = useState(0);
+    const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
     const filters = {
         search: search || undefined,
@@ -68,14 +68,13 @@ export default function AuditLogPage() {
         dateTo: dateTo || undefined,
     };
 
-    const { data: result, isLoading } = useAuditLog(filters, page, PAGE_SIZE);
+    const { data: result, isLoading } = useAuditLog(filters, page, pageSize);
     const { data: actions } = useAuditActions();
     const { data: entityTypes } = useAuditEntityTypes();
     const { data: profiles } = useProfiles();
 
     const entries = result?.data ?? [];
     const totalCount = result?.count ?? 0;
-    const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
     const hasFilters = search || action || entityType || userId || dateFrom || dateTo;
 
@@ -259,33 +258,18 @@ export default function AuditLogPage() {
                 </CardContent>
 
                 {/* Pagination */}
-                {totalPages > 1 && (
-                    <div className="flex items-center justify-between border-t px-4 py-3">
-                        <p className="text-xs text-muted-foreground">
-                            Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount}
-                        </p>
-                        <div className="flex items-center gap-1">
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={page === 0}
-                                onClick={() => setPage((p) => p - 1)}
-                                className="h-8"
-                            >
-                                <ChevronLeft className="h-4 w-4" />
-                                Previous
-                            </Button>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={page >= totalPages - 1}
-                                onClick={() => setPage((p) => p + 1)}
-                                className="h-8"
-                            >
-                                Next
-                                <ChevronRight className="h-4 w-4" />
-                            </Button>
-                        </div>
+                {totalCount > 0 && (
+                    <div className="border-t px-4 py-2">
+                        <DataTablePagination
+                            page={page + 1}
+                            pageSize={pageSize}
+                            totalCount={totalCount}
+                            onPageChange={(p) => setPage(p - 1)}
+                            onPageSizeChange={(size) => {
+                                setPageSize(size);
+                                setPage(0);
+                            }}
+                        />
                     </div>
                 )}
             </Card>

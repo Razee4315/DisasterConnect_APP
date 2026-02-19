@@ -45,12 +45,13 @@ import {
   Pencil,
   Trash2,
   Loader2,
-  ChevronLeft,
-  ChevronRight,
   AlertTriangle,
   MapPin,
+  Download,
 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
+import { DataTablePagination } from "@/components/data-table-pagination";
+import { exportToCSV } from "@/lib/csv-export";
 import { toast } from "sonner";
 
 // ─── Constants ───────────────────────────────────────────────────
@@ -75,8 +76,6 @@ const ACTIVE_OPTIONS = [
   { value: "inactive", label: "Inactive" },
 ] as const;
 
-const PAGE_SIZE = 25;
-
 // ─── Page ────────────────────────────────────────────────────────
 
 export default function AlertsPage() {
@@ -87,7 +86,8 @@ export default function AlertsPage() {
   const [activeFilter, setActiveFilter] = useState<"all" | "active" | "inactive">("all");
 
   // Pagination
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   // Dialogs
   const [formOpen, setFormOpen] = useState(false);
@@ -120,11 +120,9 @@ export default function AlertsPage() {
   // Client-side pagination
   const paginatedAlerts = useMemo(() => {
     if (!allAlerts) return [];
-    const start = page * PAGE_SIZE;
-    return allAlerts.slice(start, start + PAGE_SIZE);
-  }, [allAlerts, page]);
-
-  const totalPages = Math.ceil((allAlerts?.length ?? 0) / PAGE_SIZE);
+    const start = (page - 1) * pageSize;
+    return allAlerts.slice(start, start + pageSize);
+  }, [allAlerts, page, pageSize]);
 
   const hasFilters = search || typeFilter || severityFilter || activeFilter !== "all";
 
@@ -133,7 +131,7 @@ export default function AlertsPage() {
     setTypeFilter("");
     setSeverityFilter("");
     setActiveFilter("all");
-    setPage(0);
+    setPage(1);
   };
 
   const handleEdit = (e: React.MouseEvent, alert: AlertRow) => {
@@ -208,16 +206,42 @@ export default function AlertsPage() {
             Manage emergency alerts and notifications for affected areas.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingAlert(null);
-            setFormOpen(true);
-          }}
-          className="gap-1.5"
-        >
-          <Plus className="h-4 w-4" />
-          Create Alert
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            disabled={!allAlerts?.length}
+            onClick={() =>
+              exportToCSV(
+                allAlerts ?? [],
+                [
+                  { key: "title", label: "Title" },
+                  { key: "type", label: "Type" },
+                  { key: "severity", label: "Severity" },
+                  { key: "is_active", label: "Active" },
+                  { key: "affected_area", label: "Area" },
+                  { key: "expires_at", label: "Expires" },
+                  { key: "created_at", label: "Created" },
+                ],
+                "alerts"
+              )
+            }
+          >
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
+          <Button
+            onClick={() => {
+              setEditingAlert(null);
+              setFormOpen(true);
+            }}
+            className="gap-1.5"
+          >
+            <Plus className="h-4 w-4" />
+            Create Alert
+          </Button>
+        </div>
       </div>
 
       {/* Filter Bar */}
@@ -234,7 +258,7 @@ export default function AlertsPage() {
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
-                  setPage(0);
+                  setPage(1);
                 }}
               />
             </div>
@@ -244,7 +268,7 @@ export default function AlertsPage() {
               value={typeFilter || "__all__"}
               onValueChange={(v) => {
                 setTypeFilter(v === "__all__" ? "" : v as AlertType);
-                setPage(0);
+                setPage(1);
               }}
             >
               <SelectTrigger className="w-[150px]">
@@ -265,7 +289,7 @@ export default function AlertsPage() {
               value={severityFilter || "__all__"}
               onValueChange={(v) => {
                 setSeverityFilter(v === "__all__" ? "" : v as SeverityLevel);
-                setPage(0);
+                setPage(1);
               }}
             >
               <SelectTrigger className="w-[140px]">
@@ -286,7 +310,7 @@ export default function AlertsPage() {
               value={activeFilter}
               onValueChange={(v) => {
                 setActiveFilter(v as "all" | "active" | "inactive");
-                setPage(0);
+                setPage(1);
               }}
             >
               <SelectTrigger className="w-[140px]">
@@ -447,36 +471,18 @@ export default function AlertsPage() {
           )}
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t px-4 py-2">
-              <p className="text-xs text-muted-foreground">
-                Showing {page * PAGE_SIZE + 1}–
-                {Math.min((page + 1) * PAGE_SIZE, allAlerts?.length ?? 0)} of{" "}
-                {allAlerts?.length ?? 0}
-              </p>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="outline"
-                  size="icon-xs"
-                  disabled={page === 0}
-                  onClick={() => setPage((p) => p - 1)}
-                  aria-label="Previous page"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                </Button>
-                <span className="text-xs px-2">
-                  {page + 1} / {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="icon-xs"
-                  disabled={page >= totalPages - 1}
-                  onClick={() => setPage((p) => p + 1)}
-                  aria-label="Next page"
-                >
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+          {(allAlerts?.length ?? 0) > 0 && (
+            <div className="border-t px-4 py-2">
+              <DataTablePagination
+                page={page}
+                pageSize={pageSize}
+                totalCount={allAlerts?.length ?? 0}
+                onPageChange={setPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setPage(1);
+                }}
+              />
             </div>
           )}
         </CardContent>

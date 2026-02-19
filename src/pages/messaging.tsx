@@ -4,6 +4,8 @@ import {
     useChannels,
     useMessages,
     useSendMessage,
+    useEditMessage,
+    useDeleteMessage,
     useCreateChannel,
     useJoinChannel,
     useChannelRealtime,
@@ -55,6 +57,9 @@ import {
     ArrowDown,
     SearchX,
     File,
+    Pencil,
+    Trash2,
+    Check,
 } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { toast } from "sonner";
@@ -331,14 +336,21 @@ function MessageThread({
     channelType: string;
 }) {
     const userId = useAuthStore((s) => s.user?.id);
+    const profile = useAuthStore((s) => s.profile);
     const { data: messages = [], isLoading } = useMessages(channelId);
     const sendMessage = useSendMessage();
+    const editMessage = useEditMessage();
+    const deleteMessage = useDeleteMessage();
     const joinChannel = useJoinChannel();
     const [input, setInput] = useState("");
     const [pendingFile, setPendingFile] = useState<File | null>(null);
     const [showSearch, setShowSearch] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
     const [showScrollBtn, setShowScrollBtn] = useState(false);
+    const [editingMsgId, setEditingMsgId] = useState<string | null>(null);
+    const [editingContent, setEditingContent] = useState("");
+    const [deletingMsgId, setDeletingMsgId] = useState<string | null>(null);
+    const isAdminOrCoord = profile?.role === "administrator" || profile?.role === "coordinator";
     const scrollRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -369,6 +381,9 @@ function MessageThread({
         setPendingFile(null);
         setShowSearch(false);
         setSearchQuery("");
+        setEditingMsgId(null);
+        setEditingContent("");
+        setDeletingMsgId(null);
     }, [channelId]);
 
     const scrollToBottom = useCallback(() => {
@@ -439,6 +454,44 @@ function MessageThread({
                     return;
                 }
             }
+        }
+    };
+
+    const startEditing = (msg: MessageWithSender) => {
+        setEditingMsgId(msg.id);
+        setEditingContent(msg.content);
+    };
+
+    const cancelEditing = () => {
+        setEditingMsgId(null);
+        setEditingContent("");
+    };
+
+    const saveEdit = async () => {
+        if (!editingMsgId || !editingContent.trim()) return;
+        try {
+            await editMessage.mutateAsync({
+                messageId: editingMsgId,
+                content: editingContent.trim(),
+                channelId,
+            });
+            cancelEditing();
+        } catch {
+            toast.error("Failed to edit message");
+        }
+    };
+
+    const confirmDelete = async () => {
+        if (!deletingMsgId) return;
+        try {
+            await deleteMessage.mutateAsync({
+                messageId: deletingMsgId,
+                channelId,
+            });
+            setDeletingMsgId(null);
+            toast.success("Message deleted");
+        } catch {
+            toast.error("Failed to delete message");
         }
     };
 
@@ -571,6 +624,9 @@ function MessageThread({
 
                         const msg = item.msg;
                         const isOwn = msg.sender_id === userId;
+                        const canEdit = isOwn;
+                        const canDelete = isOwn || isAdminOrCoord;
+                        const isEditing = editingMsgId === msg.id;
                         const senderName = msg.sender
                             ? `${msg.sender.first_name} ${msg.sender.last_name}`
                             : "Unknown";
@@ -587,7 +643,7 @@ function MessageThread({
                         return (
                             <div
                                 key={msg.id}
-                                className={`flex items-start gap-2.5 ${isOwn ? "flex-row-reverse" : ""} ${showAvatar ? "mt-3" : "mt-0.5"}`}
+                                className={`group flex items-start gap-2.5 ${isOwn ? "flex-row-reverse" : ""} ${showAvatar ? "mt-3" : "mt-0.5"}`}
                             >
                                 {showAvatar ? (
                                     <Avatar className="h-7 w-7 shrink-0">
@@ -607,17 +663,83 @@ function MessageThread({
                                             </span>
                                         </div>
                                     )}
-                                    <div
-                                        className={`rounded-2xl px-3 py-2 text-sm inline-block ${isOwn
-                                            ? "bg-primary text-primary-foreground rounded-tr-sm"
-                                            : "bg-muted rounded-tl-sm"
-                                            }`}
-                                        data-selectable
-                                    >
-                                        {msg.content && (
-                                            <p className="whitespace-pre-wrap break-words leading-relaxed">
-                                                {renderMessageContent(msg.content)}
-                                            </p>
+                                    <div className={`relative inline-block ${isOwn ? "text-right" : ""}`}>
+                                        {isEditing ? (
+                                            <div className="flex items-end gap-1.5">
+                                                <textarea
+                                                    className="rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring min-w-[200px] max-w-[400px] min-h-[36px] max-h-[120px] resize-none"
+                                                    value={editingContent}
+                                                    onChange={(e) => setEditingContent(e.target.value)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); saveEdit(); }
+                                                        if (e.key === "Escape") cancelEditing();
+                                                    }}
+                                                    autoFocus
+                                                    data-selectable
+                                                />
+                                                <Button
+                                                    size="icon"
+                                                    className="h-7 w-7 rounded-full shrink-0"
+                                                    onClick={saveEdit}
+                                                    disabled={editMessage.isPending || !editingContent.trim()}
+                                                >
+                                                    {editMessage.isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                                                </Button>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-7 w-7 rounded-full shrink-0"
+                                                    onClick={cancelEditing}
+                                                >
+                                                    <X className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                <div
+                                                    className={`rounded-2xl px-3 py-2 text-sm inline-block ${isOwn
+                                                        ? "bg-primary text-primary-foreground rounded-tr-sm"
+                                                        : "bg-muted rounded-tl-sm"
+                                                        }`}
+                                                    data-selectable
+                                                >
+                                                    {msg.content && (
+                                                        <p className="whitespace-pre-wrap break-words leading-relaxed">
+                                                            {renderMessageContent(msg.content)}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                {msg.edited_at && (
+                                                    <span className="text-[10px] text-muted-foreground ml-1">(edited)</span>
+                                                )}
+                                                {/* Action buttons - show on hover */}
+                                                {(canEdit || canDelete) && (
+                                                    <div className={`absolute top-0 ${isOwn ? "left-0 -translate-x-full" : "right-0 translate-x-full"} opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-0.5 px-1`}>
+                                                        {canEdit && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-6 w-6"
+                                                                onClick={() => startEditing(msg)}
+                                                                aria-label="Edit message"
+                                                            >
+                                                                <Pencil className="h-3 w-3" />
+                                                            </Button>
+                                                        )}
+                                                        {canDelete && (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="icon"
+                                                                className="h-6 w-6 text-destructive"
+                                                                onClick={() => setDeletingMsgId(msg.id)}
+                                                                aria-label="Delete message"
+                                                            >
+                                                                <Trash2 className="h-3 w-3" />
+                                                            </Button>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </>
                                         )}
                                     </div>
                                     {/* Attachment */}
@@ -747,6 +869,32 @@ function MessageThread({
                     )}
                 </Button>
             </div>
+
+            {/* Delete Message Confirmation */}
+            <Dialog open={!!deletingMsgId} onOpenChange={(open) => !open && setDeletingMsgId(null)}>
+                <DialogContent className="max-w-xs">
+                    <DialogHeader>
+                        <DialogTitle>Delete Message</DialogTitle>
+                    </DialogHeader>
+                    <p className="text-sm text-muted-foreground">
+                        Are you sure you want to delete this message? This cannot be undone.
+                    </p>
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button variant="outline" size="sm" onClick={() => setDeletingMsgId(null)}>
+                            Cancel
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={confirmDelete}
+                            disabled={deleteMessage.isPending}
+                        >
+                            {deleteMessage.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />}
+                            Delete
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }

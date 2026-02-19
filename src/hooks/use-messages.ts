@@ -233,6 +233,65 @@ export function useCreateChannel() {
     });
 }
 
+// ─── Edit Message ───────────────────────────────────────────────
+
+export function useEditMessage() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({
+            messageId,
+            content,
+        }: {
+            messageId: string;
+            content: string;
+            channelId: string;
+        }) => {
+            const { data, error } = await supabase
+                .from("messages")
+                .update({ content, edited_at: new Date().toISOString() })
+                .eq("id", messageId)
+                .select()
+                .single();
+
+            if (error) throw error;
+            return data as Message;
+        },
+        onSuccess: (_, vars) => {
+            queryClient.invalidateQueries({
+                queryKey: ["messages", vars.channelId],
+            });
+        },
+    });
+}
+
+// ─── Delete Message ─────────────────────────────────────────────
+
+export function useDeleteMessage() {
+    const queryClient = useQueryClient();
+
+    return useMutation({
+        mutationFn: async ({
+            messageId,
+        }: {
+            messageId: string;
+            channelId: string;
+        }) => {
+            const { error } = await supabase
+                .from("messages")
+                .delete()
+                .eq("id", messageId);
+
+            if (error) throw error;
+        },
+        onSuccess: (_, vars) => {
+            queryClient.invalidateQueries({
+                queryKey: ["messages", vars.channelId],
+            });
+        },
+    });
+}
+
 // ─── Realtime Messages Subscription ──────────────────────────────
 
 export function useChannelRealtime(channelId: string | undefined) {
@@ -246,7 +305,7 @@ export function useChannelRealtime(channelId: string | undefined) {
             .on(
                 "postgres_changes",
                 {
-                    event: "INSERT",
+                    event: "*",
                     schema: "public",
                     table: "messages",
                     filter: `channel_id=eq.${channelId}`,

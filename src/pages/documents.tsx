@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import {
     useDocuments,
     useUploadDocument,
@@ -41,6 +41,7 @@ import {
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
+import { DataTablePagination } from "@/components/data-table-pagination";
 
 function fileIcon(mime: string | null) {
     if (!mime) return <File className="h-5 w-5 text-muted-foreground" />;
@@ -61,13 +62,19 @@ function formatSize(bytes: number | null): string {
 
 export default function DocumentsPage() {
     const [filters, setFilters] = useState<DocumentFilters>({});
+    const [page, setPage] = useState(1);
+    const [pageSize, setPageSize] = useState(25);
     const [uploading, setUploading] = useState(false);
     const [dragOver, setDragOver] = useState(false);
     const [deleteTarget, setDeleteTarget] = useState<{ id: string; filePath: string; name: string } | null>(null);
     const fileRef = useRef<HTMLInputElement>(null);
     const [uploadIncident, setUploadIncident] = useState("");
 
-    const { data: documents = [], isLoading } = useDocuments(filters);
+    const { data: allDocuments = [], isLoading } = useDocuments(filters);
+    const paginatedDocuments = useMemo(() => {
+        const start = (page - 1) * pageSize;
+        return allDocuments.slice(start, start + pageSize);
+    }, [allDocuments, page, pageSize]);
     const { data: incidents = [] } = useIncidents();
     const uploadMut = useUploadDocument();
     const deleteMut = useDeleteDocument();
@@ -188,7 +195,7 @@ export default function DocumentsPage() {
             {/* Document Table */}
             {isLoading ? (
                 <div className="flex justify-center py-12"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
-            ) : documents.length === 0 ? (
+            ) : allDocuments.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
                     <div className="flex h-14 w-14 items-center justify-center rounded-full bg-muted mb-3">
                         <FileText className="h-7 w-7 opacity-50" />
@@ -214,7 +221,7 @@ export default function DocumentsPage() {
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {documents.map((d) => (
+                            {paginatedDocuments.map((d) => (
                                 <TableRow key={d.id}>
                                     <TableCell>
                                         <div className="flex items-center gap-2">
@@ -258,6 +265,22 @@ export default function DocumentsPage() {
                             ))}
                         </TableBody>
                     </Table>
+                </div>
+            )}
+
+            {/* Pagination */}
+            {allDocuments.length > 0 && (
+                <div className="px-4 py-2">
+                    <DataTablePagination
+                        page={page}
+                        pageSize={pageSize}
+                        totalCount={allDocuments.length}
+                        onPageChange={setPage}
+                        onPageSizeChange={(size) => {
+                            setPageSize(size);
+                            setPage(1);
+                        }}
+                    />
                 </div>
             )}
 

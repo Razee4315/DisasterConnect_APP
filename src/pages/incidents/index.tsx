@@ -46,10 +46,11 @@ import {
   Pencil,
   Trash2,
   Loader2,
-  ChevronLeft,
-  ChevronRight,
+  Download,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { DataTablePagination } from "@/components/data-table-pagination";
+import { exportToCSV } from "@/lib/csv-export";
 import { toast } from "sonner";
 
 // ─── Constants ───────────────────────────────────────────────────
@@ -81,8 +82,6 @@ const STATUS_OPTIONS: { value: IncidentStatus; label: string }[] = [
   { value: "closed", label: "Closed" },
 ];
 
-const PAGE_SIZE = 25;
-
 function formatType(type: string): string {
   return type
     .split("_")
@@ -102,7 +101,8 @@ export default function IncidentsPage() {
   const [statusFilter, setStatusFilter] = useState<IncidentStatus | "">("");
 
   // Pagination
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   // Dialogs
   const [formOpen, setFormOpen] = useState(false);
@@ -123,11 +123,9 @@ export default function IncidentsPage() {
   // Client-side pagination
   const paginatedIncidents = useMemo(() => {
     if (!allIncidents) return [];
-    const start = page * PAGE_SIZE;
-    return allIncidents.slice(start, start + PAGE_SIZE);
-  }, [allIncidents, page]);
-
-  const totalPages = Math.ceil((allIncidents?.length ?? 0) / PAGE_SIZE);
+    const start = (page - 1) * pageSize;
+    return allIncidents.slice(start, start + pageSize);
+  }, [allIncidents, page, pageSize]);
 
   const hasFilters = search || typeFilter || severityFilter || statusFilter;
 
@@ -136,7 +134,7 @@ export default function IncidentsPage() {
     setTypeFilter("");
     setSeverityFilter("");
     setStatusFilter("");
-    setPage(0);
+    setPage(1);
   };
 
   const handleEdit = (e: React.MouseEvent, incident: Incident) => {
@@ -166,16 +164,41 @@ export default function IncidentsPage() {
             Track and manage disaster incidents.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingIncident(null);
-            setFormOpen(true);
-          }}
-          className="gap-1.5"
-        >
-          <Plus className="h-4 w-4" />
-          Report Incident
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            disabled={!allIncidents?.length}
+            onClick={() =>
+              exportToCSV(
+                allIncidents ?? [],
+                [
+                  { key: "title", label: "Title" },
+                  { key: "type", label: "Type" },
+                  { key: "severity", label: "Severity" },
+                  { key: "status", label: "Status" },
+                  { key: "location_name", label: "Location" },
+                  { key: "created_at", label: "Created" },
+                ],
+                "incidents"
+              )
+            }
+          >
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
+          <Button
+            onClick={() => {
+              setEditingIncident(null);
+              setFormOpen(true);
+            }}
+            className="gap-1.5"
+          >
+            <Plus className="h-4 w-4" />
+            Report Incident
+          </Button>
+        </div>
       </div>
 
       {/* Filter Bar */}
@@ -192,7 +215,7 @@ export default function IncidentsPage() {
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
-                  setPage(0);
+                  setPage(1);
                 }}
               />
             </div>
@@ -382,36 +405,18 @@ export default function IncidentsPage() {
           )}
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t px-4 py-2">
-              <p className="text-xs text-muted-foreground">
-                Showing {page * PAGE_SIZE + 1}–
-                {Math.min((page + 1) * PAGE_SIZE, allIncidents?.length ?? 0)} of{" "}
-                {allIncidents?.length ?? 0}
-              </p>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="outline"
-                  size="icon-xs"
-                  disabled={page === 0}
-                  onClick={() => setPage((p) => p - 1)}
-                  aria-label="Previous page"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                </Button>
-                <span className="text-xs px-2">
-                  {page + 1} / {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="icon-xs"
-                  disabled={page >= totalPages - 1}
-                  onClick={() => setPage((p) => p + 1)}
-                  aria-label="Next page"
-                >
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+          {(allIncidents?.length ?? 0) > 0 && (
+            <div className="border-t px-4 py-2">
+              <DataTablePagination
+                page={page}
+                pageSize={pageSize}
+                totalCount={allIncidents?.length ?? 0}
+                onPageChange={setPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setPage(1);
+                }}
+              />
             </div>
           )}
         </CardContent>

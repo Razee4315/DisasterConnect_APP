@@ -46,10 +46,11 @@ import {
   Pencil,
   Trash2,
   Loader2,
-  ChevronLeft,
-  ChevronRight,
+  Download,
 } from "lucide-react";
 import { toast } from "sonner";
+import { DataTablePagination } from "@/components/data-table-pagination";
+import { exportToCSV } from "@/lib/csv-export";
 
 // ─── Constants ───────────────────────────────────────────────────
 
@@ -75,8 +76,6 @@ const STATUS_OPTIONS: { value: ResourceStatus; label: string }[] = [
   { value: "maintenance", label: "Maintenance" },
 ];
 
-const PAGE_SIZE = 25;
-
 // ─── Page ────────────────────────────────────────────────────────
 
 export default function ResourcesPage() {
@@ -86,7 +85,8 @@ export default function ResourcesPage() {
   const [typeFilter, setTypeFilter] = useState<ResourceType | "">("");
   const [statusFilter, setStatusFilter] = useState<ResourceStatus | "">("");
   const [maintenanceFilter, setMaintenanceFilter] = useState("");
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingResource, setEditingResource] = useState<Resource | null>(null);
@@ -105,11 +105,9 @@ export default function ResourcesPage() {
 
   const paginatedResources = useMemo(() => {
     if (!allResources) return [];
-    const start = page * PAGE_SIZE;
-    return allResources.slice(start, start + PAGE_SIZE);
-  }, [allResources, page]);
-
-  const totalPages = Math.ceil((allResources?.length ?? 0) / PAGE_SIZE);
+    const start = (page - 1) * pageSize;
+    return allResources.slice(start, start + pageSize);
+  }, [allResources, page, pageSize]);
   const hasFilters = search || typeFilter || statusFilter || maintenanceFilter;
 
   const clearFilters = () => {
@@ -117,7 +115,7 @@ export default function ResourcesPage() {
     setTypeFilter("");
     setStatusFilter("");
     setMaintenanceFilter("");
-    setPage(0);
+    setPage(1);
   };
 
   const handleEdit = (e: React.MouseEvent, resource: Resource) => {
@@ -147,16 +145,42 @@ export default function ResourcesPage() {
             Manage personnel, equipment, and supplies.
           </p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingResource(null);
-            setFormOpen(true);
-          }}
-          className="gap-1.5"
-        >
-          <Plus className="h-4 w-4" />
-          Add Resource
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            disabled={!allResources?.length}
+            onClick={() =>
+              exportToCSV(
+                allResources ?? [],
+                [
+                  { key: "name", label: "Name" },
+                  { key: "type", label: "Type" },
+                  { key: "status", label: "Status" },
+                  { key: "capacity", label: "Capacity" },
+                  { key: "location_name", label: "Location" },
+                  { key: "maintenance_status", label: "Maintenance" },
+                  { key: "created_at", label: "Created" },
+                ],
+                "resources"
+              )
+            }
+          >
+            <Download className="h-4 w-4" />
+            Export CSV
+          </Button>
+          <Button
+            onClick={() => {
+              setEditingResource(null);
+              setFormOpen(true);
+            }}
+            className="gap-1.5"
+          >
+            <Plus className="h-4 w-4" />
+            Add Resource
+          </Button>
+        </div>
       </div>
 
       {/* Filter Bar */}
@@ -172,7 +196,7 @@ export default function ResourcesPage() {
                 value={search}
                 onChange={(e) => {
                   setSearch(e.target.value);
-                  setPage(0);
+                  setPage(1);
                 }}
               />
             </div>
@@ -181,7 +205,7 @@ export default function ResourcesPage() {
               value={typeFilter || "__all__"}
               onValueChange={(v) => {
                 setTypeFilter(v === "__all__" ? "" : v as ResourceType);
-                setPage(0);
+                setPage(1);
               }}
             >
               <SelectTrigger className="w-[180px]">
@@ -201,7 +225,7 @@ export default function ResourcesPage() {
               value={statusFilter || "__all__"}
               onValueChange={(v) => {
                 setStatusFilter(v === "__all__" ? "" : v as ResourceStatus);
-                setPage(0);
+                setPage(1);
               }}
             >
               <SelectTrigger className="w-[150px]">
@@ -221,7 +245,7 @@ export default function ResourcesPage() {
               value={maintenanceFilter || "__all__"}
               onValueChange={(v) => {
                 setMaintenanceFilter(v === "__all__" ? "" : v);
-                setPage(0);
+                setPage(1);
               }}
             >
               <SelectTrigger className="w-[160px]">
@@ -347,34 +371,18 @@ export default function ResourcesPage() {
             </div>
           )}
 
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between border-t px-4 py-2">
-              <p className="text-xs text-muted-foreground">
-                Showing {page * PAGE_SIZE + 1}–
-                {Math.min((page + 1) * PAGE_SIZE, allResources?.length ?? 0)} of{" "}
-                {allResources?.length ?? 0}
-              </p>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="outline"
-                  size="icon-xs"
-                  disabled={page === 0}
-                  onClick={() => setPage((p) => p - 1)}
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" />
-                </Button>
-                <span className="text-xs px-2">
-                  {page + 1} / {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="icon-xs"
-                  disabled={page >= totalPages - 1}
-                  onClick={() => setPage((p) => p + 1)}
-                >
-                  <ChevronRight className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+          {(allResources?.length ?? 0) > 0 && (
+            <div className="border-t px-4 py-2">
+              <DataTablePagination
+                page={page}
+                pageSize={pageSize}
+                totalCount={allResources?.length ?? 0}
+                onPageChange={setPage}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setPage(1);
+                }}
+              />
             </div>
           )}
         </CardContent>
