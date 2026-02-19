@@ -44,14 +44,16 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back, {profile?.first_name ?? "User"}.{" "}
-          <Badge variant="outline" className="ml-1">
-            {profile?.role ? formatRole(profile.role) : "—"}
-          </Badge>
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome back, {profile?.first_name ?? "User"}.{" "}
+            <Badge variant="outline" className="ml-1">
+              {profile?.role ? formatRole(profile.role) : "—"}
+            </Badge>
+          </p>
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -60,7 +62,7 @@ export default function DashboardPage() {
       {/* Map + Quick Actions */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
         {/* Map Section */}
-        <Card className="lg:col-span-3 overflow-hidden">
+        <Card className="lg:col-span-3 overflow-hidden page-header-gradient">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">
               Incident & Resource Map

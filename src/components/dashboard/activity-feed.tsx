@@ -24,6 +24,13 @@ const TYPE_ICON = {
   alert_created: Bell,
 } as const;
 
+const TYPE_ICON_COLOR: Record<string, { bg: string; fg: string }> = {
+  incident_created: { bg: "bg-orange-500/10 dark:bg-orange-400/10", fg: "text-orange-600 dark:text-orange-400" },
+  incident_updated: { bg: "bg-blue-500/10 dark:bg-blue-400/10", fg: "text-blue-600 dark:text-blue-400" },
+  resource_created: { bg: "bg-emerald-500/10 dark:bg-emerald-400/10", fg: "text-emerald-600 dark:text-emerald-400" },
+  alert_created: { bg: "bg-amber-500/10 dark:bg-amber-400/10", fg: "text-amber-600 dark:text-amber-400" },
+};
+
 interface ActivityFeedProps {
   items: ActivityItem[] | undefined;
   isLoading: boolean;
@@ -62,13 +69,14 @@ export function ActivityFeed({ items, isLoading }: ActivityFeedProps) {
           <div className="space-y-3 max-h-[320px] overflow-y-auto scrollable">
             {items.map((item) => {
               const Icon = TYPE_ICON[item.type] ?? AlertTriangle;
+              const colors = TYPE_ICON_COLOR[item.type] ?? { bg: "bg-muted", fg: "text-muted-foreground" };
               return (
                 <div
                   key={item.id}
-                  className="flex items-start gap-3 rounded-md p-2 hover:bg-muted/50 transition-colors"
+                  className="flex items-start gap-3 rounded-lg p-2 hover:bg-muted/50 transition-colors"
                 >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
-                    <Icon className="h-4 w-4 text-muted-foreground" />
+                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${colors.bg}`}>
+                    <Icon className={`h-4 w-4 ${colors.fg}`} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm leading-snug truncate" data-selectable>

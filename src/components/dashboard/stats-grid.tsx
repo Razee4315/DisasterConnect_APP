@@ -19,6 +19,13 @@ interface StatCardProps {
   href?: string;
 }
 
+const ICON_BG: Record<string, string> = {
+  "text-severity-high": "bg-orange-500/10 dark:bg-orange-400/10",
+  "text-success": "bg-emerald-500/10 dark:bg-emerald-400/10",
+  "text-destructive": "bg-red-500/10 dark:bg-red-400/10",
+  "text-primary": "bg-primary/10",
+};
+
 function StatCard({
   label,
   value,
@@ -32,14 +39,16 @@ function StatCard({
 
   return (
     <Card
-      className={`${accent && value > 0 ? "border-destructive/50 bg-destructive/5" : ""} ${href ? "cursor-pointer hover:shadow-md transition-shadow" : ""}`}
+      className={`card-hover ${accent && value > 0 ? "border-destructive/50 bg-destructive/5" : ""} ${href ? "cursor-pointer" : ""}`}
       onClick={href ? () => navigate(href) : undefined}
     >
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {label}
         </CardTitle>
-        <Icon className={`h-4 w-4 ${iconColor}`} />
+        <div className={`stat-icon-container ${ICON_BG[iconColor] ?? "bg-muted"}`}>
+          <Icon className={`h-4 w-4 ${iconColor}`} />
+        </div>
       </CardHeader>
       <CardContent>
         <p className="text-2xl font-bold">{value}</p>
