@@ -203,3 +203,92 @@ html.dark {
     position: relative;
   }
 }
+
+/* ============================================================
+   UI Polish — Shared Patterns
+   ============================================================ */
+
+@layer components {
+  /* Card with subtle hover lift */
+  .card-hover {
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+  }
+  .card-hover:hover {
+    box-shadow: 0 4px 12px -2px oklch(0.15 0.01 250 / 0.08);
+    transform: translateY(-1px);
+  }
+  html.dark .card-hover:hover {
+    box-shadow: 0 4px 12px -2px oklch(0 0 0 / 0.3);
+  }
+
+  /* Page header gradient strip */
+  .page-header-gradient {
+    position: relative;
+  }
+  .page-header-gradient::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--color-primary), var(--color-primary) 40%, transparent);
+    border-radius: 2px 2px 0 0;
+    opacity: 0.8;
+  }
+
+  /* Auth page background pattern */
+  .auth-bg {
+    background-color: var(--color-background);
+    background-image:
+      radial-gradient(at 20% 30%, oklch(0.55 0.2 250 / 0.04) 0, transparent 50%),
+      radial-gradient(at 80% 70%, oklch(0.55 0.22 27 / 0.03) 0, transparent 50%),
+      radial-gradient(at 50% 50%, oklch(0.6 0.19 145 / 0.02) 0, transparent 70%);
+  }
+  html.dark .auth-bg {
+    background-image:
+      radial-gradient(at 20% 30%, oklch(0.7 0.18 250 / 0.06) 0, transparent 50%),
+      radial-gradient(at 80% 70%, oklch(0.65 0.2 27 / 0.04) 0, transparent 50%),
+      radial-gradient(at 50% 50%, oklch(0.65 0.17 145 / 0.03) 0, transparent 70%);
+  }
+
+  /* Settings nav pill */
+  .settings-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    color: var(--color-muted-foreground);
+    transition: all 0.15s ease;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+  }
+  .settings-nav-item:hover {
+    color: var(--color-foreground);
+    background-color: var(--color-muted);
+  }
+  .settings-nav-item.active {
+    color: var(--color-primary);
+    background-color: oklch(0.55 0.2 250 / 0.08);
+    font-weight: 500;
+  }
+  html.dark .settings-nav-item.active {
+    background-color: oklch(0.7 0.18 250 / 0.1);
+  }
+
+  /* Stat card icon container */
+  .stat-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: var(--radius-lg);
+    flex-shrink: 0;
+  }
+}
