@@ -107,19 +107,39 @@ function useAllUsers() {
     });
 }
 
-// ─── Update user mutation ───────────────────────────────────────
+// ─── Update user mutation with audit logging ────────────────────
 
 function useUpdateUser() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({ id, ...updates }: { id: string; role?: UserRole; is_active?: boolean }) => {
+        mutationFn: async ({
+            id,
+            changes,
+            targetName,
+        }: {
+            id: string;
+            changes: { role?: UserRole; is_active?: boolean };
+            targetName: string;
+        }) => {
             const { error } = await supabase
                 .from("profiles")
-                .update(updates)
+                .update(changes)
                 .eq("id", id);
 
             if (error) throw error;
+
+            // Log the action to audit_log
+            const details: string[] = [];
+            if (changes.role !== undefined) details.push(`role → ${changes.role}`);
+            if (changes.is_active !== undefined) details.push(changes.is_active ? "reactivated" : "deactivated");
+
+            await supabase.from("audit_log").insert({
+                action: "user_updated",
+                entity_type: "profile",
+                entity_id: id,
+                details: `Admin updated ${targetName}: ${details.join(", ")}`,
+            });
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["admin"] });
@@ -178,6 +198,11 @@ export default function AdminPage() {
     const [editUser, setEditUser] = useState<Profile | null>(null);
     const [editRole, setEditRole] = useState<UserRole>("volunteer");
     const [editActive, setEditActive] = useState(true);
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [confirmAction, setConfirmAction] = useState<{
+        message: string;
+        onConfirm: () => void;
+    } | null>(null);
 
     // Check admin access
     if (currentUser?.role !== "administrator") {
@@ -213,13 +238,25 @@ export default function AdminPage() {
         setEditActive(user.is_active);
     };
 
-    const handleSave = async () => {
+    const isSelf = editUser?.id === currentUser?.id;
+
+    const executeSave = async () => {
         if (!editUser) return;
+
+        const changes: { role?: UserRole; is_active?: boolean } = {};
+        if (editRole !== editUser.role) changes.role = editRole;
+        if (editActive !== editUser.is_active) changes.is_active = editActive;
+
+        if (Object.keys(changes).length === 0) {
+            setEditUser(null);
+            return;
+        }
+
         try {
             await updateUser.mutateAsync({
                 id: editUser.id,
-                role: editRole,
-                is_active: editActive,
+                changes,
+                targetName: `${editUser.first_name} ${editUser.last_name}`,
             });
             toast.success("User updated", {
                 description: `${editUser.first_name} ${editUser.last_name} has been updated.`,
@@ -228,6 +265,56 @@ export default function AdminPage() {
         } catch {
             toast.error("Failed to update user");
         }
+    };
+
+    const handleSave = () => {
+        if (!editUser) return;
+
+        // Self-protection: prevent admin from removing their own admin role
+        if (isSelf && editRole !== "administrator") {
+            toast.error("Cannot change your own role", {
+                description: "You cannot remove your own administrator role. Ask another admin to do this.",
+            });
+            return;
+        }
+
+        // Self-protection: prevent admin from deactivating themselves
+        if (isSelf && !editActive) {
+            toast.error("Cannot deactivate yourself", {
+                description: "You cannot deactivate your own account. Ask another admin to do this.",
+            });
+            return;
+        }
+
+        // Confirmation for dangerous actions
+        const isDangerousRoleChange = editRole === "administrator" && editUser.role !== "administrator";
+        const isDeactivation = !editActive && editUser.is_active;
+
+        if (isDangerousRoleChange) {
+            setConfirmAction({
+                message: `You are about to grant administrator privileges to ${editUser.first_name} ${editUser.last_name}. This will give them full access to manage all users and system settings. Continue?`,
+                onConfirm: executeSave,
+            });
+            setConfirmOpen(true);
+            return;
+        }
+
+        if (isDeactivation) {
+            setConfirmAction({
+                message: `You are about to deactivate ${editUser.first_name} ${editUser.last_name}'s account. They will lose access to all data and features immediately. Continue?`,
+                onConfirm: executeSave,
+            });
+            setConfirmOpen(true);
+            return;
+        }
+
+        executeSave();
+    };
+
+    const handleConfirm = () => {
+        confirmAction?.onConfirm();
+        setConfirmOpen(false);
+        setConfirmAction(null);
     };
 
     return (
@@ -325,6 +412,7 @@ export default function AdminPage() {
                                     ) : (
                                         filteredUsers.map((user) => {
                                             const initials = `${user.first_name[0] || ""}${user.last_name[0] || ""}`.toUpperCase();
+                                            const isCurrentUser = user.id === currentUser?.id;
                                             return (
                                                 <TableRow key={user.id}>
                                                     <TableCell>
@@ -337,6 +425,9 @@ export default function AdminPage() {
                                                             <div>
                                                                 <p className="text-sm font-medium">
                                                                     {user.first_name} {user.last_name}
+                                                                    {isCurrentUser && (
+                                                                        <span className="ml-1.5 text-xs text-muted-foreground">(you)</span>
+                                                                    )}
                                                                 </p>
                                                                 <p className="text-xs text-muted-foreground">
                                                                     {user.email}
@@ -392,12 +483,21 @@ export default function AdminPage() {
                         <DialogTitle>Edit User</DialogTitle>
                         <DialogDescription>
                             Modify role or status for {editUser?.first_name} {editUser?.last_name}.
+                            {isSelf && (
+                                <span className="block mt-1 text-amber-600 dark:text-amber-400">
+                                    You cannot change your own role or deactivate yourself.
+                                </span>
+                            )}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-2">
                         <div className="space-y-1.5">
                             <label className="text-sm font-medium">Role</label>
-                            <Select value={editRole} onValueChange={(v) => setEditRole(v as UserRole)}>
+                            <Select
+                                value={editRole}
+                                onValueChange={(v) => setEditRole(v as UserRole)}
+                                disabled={isSelf}
+                            >
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
@@ -414,16 +514,49 @@ export default function AdminPage() {
                         </div>
                         <div className="flex items-center justify-between">
                             <label className="text-sm font-medium">Account Active</label>
-                            <Switch checked={editActive} onCheckedChange={setEditActive} />
+                            <Switch
+                                checked={editActive}
+                                onCheckedChange={setEditActive}
+                                disabled={isSelf}
+                            />
                         </div>
+                        {isSelf && (
+                            <p className="text-xs text-muted-foreground">
+                                Self-modification is disabled to prevent accidental lockout.
+                            </p>
+                        )}
                     </div>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setEditUser(null)}>
                             Cancel
                         </Button>
-                        <Button onClick={handleSave} disabled={updateUser.isPending}>
+                        <Button onClick={handleSave} disabled={updateUser.isPending || isSelf}>
                             {updateUser.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                             Save
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Confirmation Dialog for dangerous actions */}
+            <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                <DialogContent className="sm:max-w-sm">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <AlertTriangle className="h-5 w-5 text-amber-500" />
+                            Confirm Action
+                        </DialogTitle>
+                        <DialogDescription>
+                            {confirmAction?.message}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setConfirmOpen(false)}>
+                            Cancel
+                        </Button>
+                        <Button variant="destructive" onClick={handleConfirm} disabled={updateUser.isPending}>
+                            {updateUser.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                            Confirm
                         </Button>
                     </DialogFooter>
                 </DialogContent>
