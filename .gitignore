@@ -26,9 +26,3 @@ dist-ssr
 # Environment and secrets
 .env
 .env.*
-*.pem
-*.key
-*.p12
-*.pfx
-credentials.json
-service-account*.json
